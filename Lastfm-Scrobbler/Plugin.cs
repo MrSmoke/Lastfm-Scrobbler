@@ -1,17 +1,14 @@
-﻿using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Linq;
-using LastfmScrobbler.Configuration;
-using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Plugins;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Plugins;
-using MediaBrowser.Model.Serialization;
-
-namespace LastfmScrobbler
+﻿namespace LastfmScrobbler
 {
+    using LastfmScrobbler.Configuration;
+    using MediaBrowser.Common.Configuration;
+    using MediaBrowser.Common.Plugins;
+    using MediaBrowser.Model.Entities;
+    using MediaBrowser.Model.Logging;
+    using MediaBrowser.Model.Plugins;
+    using MediaBrowser.Model.Serialization;
+    using System.Threading;
+
     /// <summary>
     /// Class Plugin
     /// </summary>

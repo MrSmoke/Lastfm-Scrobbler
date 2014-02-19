@@ -1,10 +1,9 @@
-﻿using MediaBrowser.Common.Plugins;
-using MediaBrowser.Controller.Plugins;
-using System;
-using System.IO;
-
-namespace LastfmScrobbler.Configuration
+﻿namespace LastfmScrobbler.Configuration
 {
+    using MediaBrowser.Common.Plugins;
+    using MediaBrowser.Controller.Plugins;
+    using System.IO;
+
     /// <summary>
     /// Class MyConfigurationPage
     /// </summary>

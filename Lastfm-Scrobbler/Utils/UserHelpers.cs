@@ -1,9 +1,9 @@
 ﻿namespace LastfmScrobbler.Utils
 {
-    using Models;
     using MediaBrowser.Controller.Entities;
-    using System.Linq;
+    using Models;
     using System;
+    using System.Linq;
 
     public static class UserHelpers
     {

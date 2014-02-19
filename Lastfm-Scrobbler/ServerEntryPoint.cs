@@ -6,7 +6,6 @@
     using MediaBrowser.Common.Net;
     using MediaBrowser.Common.ScheduledTasks;
     using MediaBrowser.Common.Security;
-    using MediaBrowser.Controller.Entities;
     using MediaBrowser.Controller.Entities.Audio;
     using MediaBrowser.Controller.Library;
     using MediaBrowser.Controller.Plugins;
@@ -75,8 +74,6 @@
         /// </summary>
         public void Run()
         {
-            Plugin.Logger.Info(string.Format("[LASTFM] STARTED"));
-
             //Bind events
             _sessionManager.PlaybackStart   += this.PlaybackStart;
             _sessionManager.PlaybackStopped += this.PlaybackStopped;
