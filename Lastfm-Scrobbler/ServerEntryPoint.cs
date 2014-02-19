@@ -2,9 +2,7 @@
 {
     using Api;
     using Configuration;
-    using MediaBrowser.Common.Configuration;
     using MediaBrowser.Common.Net;
-    using MediaBrowser.Common.ScheduledTasks;
     using MediaBrowser.Common.Security;
     using MediaBrowser.Controller.Entities.Audio;
     using MediaBrowser.Controller.Library;
@@ -22,10 +20,11 @@
     /// </summary>
     public class ServerEntryPoint : IServerEntryPoint, IRequiresRegistration
     {
-        private readonly ISessionManager _sessionManager;
-        private readonly LastfmApiClient _apiClient;
-        private readonly IJsonSerializer _jsonSerializer;
+        private readonly ISessionManager  _sessionManager;
+        private readonly IJsonSerializer  _jsonSerializer;
         private readonly IUserDataManager _userDataManager;
+
+        private LastfmApiClient _apiClient;
 
         /// <summary>
         /// Gets the instance.
@@ -34,34 +33,17 @@
         public static ServerEntryPoint Instance { get; private set; }
 
         /// <summary>
-        /// The _task manager
-        /// </summary>
-        private readonly ITaskManager _taskManager;
-
-        /// <summary>
-        /// Access to the LibraryManager of MB Server
-        /// </summary>
-        public ILibraryManager LibraryManager { get; private set; }
-
-        /// <summary>
-        /// Access to the SecurityManager of MB Server
-        /// </summary>
-        public ISecurityManager PluginSecurityManager { get; set; }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ServerEntryPoint" /> class.
         /// </summary>
         /// <param name="taskManager">The task manager.</param>
         /// <param name="appPaths">The app paths.</param>
         /// <param name="logManager"></param>
-        public ServerEntryPoint(ISessionManager sessionManager, IJsonSerializer jsonSerializer, IHttpClient httpClient, ITaskManager taskManager, ILibraryManager libraryManager, IApplicationPaths appPaths, ILogManager logManager, ISecurityManager securityManager, IUserDataManager userDataManager)
+        public ServerEntryPoint(ISessionManager sessionManager, IJsonSerializer jsonSerializer, IHttpClient httpClient, ILogManager logManager, IUserDataManager userDataManager)
         {
             Plugin.Logger = logManager.GetLogger(Plugin.Instance.Name);
 
-            _taskManager = taskManager;
-
-            _sessionManager = sessionManager;
-            _jsonSerializer = jsonSerializer;
+            _sessionManager  = sessionManager;
+            _jsonSerializer  = jsonSerializer;
             _userDataManager = userDataManager;
 
             _apiClient = new LastfmApiClient(httpClient, _jsonSerializer);
@@ -77,11 +59,13 @@
             //Bind events
             _sessionManager.PlaybackStart   += this.PlaybackStart;
             _sessionManager.PlaybackStopped += this.PlaybackStopped;
-
-            _userDataManager.UserDataSaved += _userDataManager_UserDataSaved;
+            _userDataManager.UserDataSaved  += this.UserDataSaved;
         }
 
-        void _userDataManager_UserDataSaved(object sender, UserDataSaveEventArgs e)
+        /// <summary>
+        /// Let last fm know when a user favourites or unfavourites a track
+        /// </summary>
+        void UserDataSaved(object sender, UserDataSaveEventArgs e)
         {
             //We only care about audio
             if (!(e.Item is Audio))
@@ -110,6 +94,12 @@
             _apiClient.LoveTrack(item, LastfmUser, e.UserData.IsFavorite);
         }
 
+
+        /// <summary>
+        /// Let last.fm know when a track has finished.
+        
+        /// Playback stopped is run when a track is finished.
+        /// </summary>
         private async void PlaybackStopped(object sender, PlaybackStopEventArgs e)
         {
             //We only care about audio
@@ -144,6 +134,9 @@
             _apiClient.Scrobble(item, LastfmUser);
         }
 
+        /// <summary>
+        /// Let Last.fm know when a user has started listening to a track
+        /// </summary>
         private async void PlaybackStart(object sender, PlaybackProgressEventArgs e)
         {
             //We only care about audio
@@ -189,6 +182,14 @@
         /// </summary>
         public void Dispose()
         {
+            //Unbind events
+            _sessionManager.PlaybackStart   -= this.PlaybackStart;
+            _sessionManager.PlaybackStopped -= this.PlaybackStopped;
+            _userDataManager.UserDataSaved  -= this.UserDataSaved;
+
+            //Clean up
+            _apiClient = null;
+
         }
 
         /// <summary>
