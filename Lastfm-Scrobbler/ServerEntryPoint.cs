@@ -10,6 +10,7 @@
     using MediaBrowser.Controller.Library;
     using MediaBrowser.Controller.Plugins;
     using MediaBrowser.Controller.Session;
+    using MediaBrowser.Model.Entities;
     using MediaBrowser.Model.Logging;
     using MediaBrowser.Model.Serialization;
     using System.Linq;
@@ -24,6 +25,7 @@
         private readonly ISessionManager _sessionManager;
         private readonly LastfmApiClient _apiClient;
         private readonly IJsonSerializer _jsonSerializer;
+        private readonly IUserDataManager _userDataManager;
 
         /// <summary>
         /// Gets the instance.
@@ -52,7 +54,7 @@
         /// <param name="taskManager">The task manager.</param>
         /// <param name="appPaths">The app paths.</param>
         /// <param name="logManager"></param>
-        public ServerEntryPoint(ISessionManager sessionManager, IJsonSerializer jsonSerializer, IHttpClient httpClient, ITaskManager taskManager, ILibraryManager libraryManager, IApplicationPaths appPaths, ILogManager logManager, ISecurityManager securityManager)
+        public ServerEntryPoint(ISessionManager sessionManager, IJsonSerializer jsonSerializer, IHttpClient httpClient, ITaskManager taskManager, ILibraryManager libraryManager, IApplicationPaths appPaths, ILogManager logManager, ISecurityManager securityManager, IUserDataManager userDataManager)
         {
             Plugin.Logger = logManager.GetLogger(Plugin.Instance.Name);
 
@@ -60,11 +62,9 @@
 
             _sessionManager = sessionManager;
             _jsonSerializer = jsonSerializer;
+            _userDataManager = userDataManager;
 
             _apiClient = new LastfmApiClient(httpClient, _jsonSerializer);
-
-            LibraryManager = libraryManager;
-            PluginSecurityManager = securityManager;
             
             Instance = this;
         }
@@ -77,10 +77,45 @@
             //Bind events
             _sessionManager.PlaybackStart   += this.PlaybackStart;
             _sessionManager.PlaybackStopped += this.PlaybackStopped;
+
+            _userDataManager.UserDataSaved += _userDataManager_UserDataSaved;
+        }
+
+        void _userDataManager_UserDataSaved(object sender, UserDataSaveEventArgs e)
+        {
+            //We only care about audio
+            if (!(e.Item is Audio))
+                return;
+
+            //We also only care about User rating changes
+            if (!e.SaveReason.Equals(UserDataSaveReason.UpdateUserRating))
+                return;
+
+            var LastfmUser = Utils.UserHelpers.GetUser(e.UserId);
+
+            if (LastfmUser == null)
+            {
+                Plugin.Logger.Debug("Could not find user");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(LastfmUser.SessionKey))
+            {
+                Plugin.Logger.Info("No session key present, aborting");
+                return;
+            }
+
+            var item = e.Item as Audio;
+
+            _apiClient.LoveTrack(item, LastfmUser, e.UserData.IsFavorite);
         }
 
         private async void PlaybackStopped(object sender, PlaybackStopEventArgs e)
         {
+            //We only care about audio
+            if (!(e.Item is Audio))
+                return;
+
             if (!e.PlayedToCompletion)
                 return;
 
@@ -105,17 +140,16 @@
                 return;
             }
 
-            //Check the item played back is an audio item
-            if (e.Item is Audio)
-            {
-                var item = e.Item as Audio;
-
-                _apiClient.Scrobble(item, LastfmUser);
-            }
+            var item = e.Item as Audio;
+            _apiClient.Scrobble(item, LastfmUser);
         }
 
         private async void PlaybackStart(object sender, PlaybackProgressEventArgs e)
         {
+            //We only care about audio
+            if (!(e.Item is Audio))
+                return;
+
             var LastfmUser = Utils.UserHelpers.GetUser(e.Users.First());
 
             if (LastfmUser == null)
@@ -137,13 +171,8 @@
                 return;
             }
 
-            //Check the item played back is an audio item
-            if (e.Item is Audio)
-            {
-                var item = e.Item as Audio;
-
-                _apiClient.NowPlaying(item, LastfmUser);
-            }
+            var item = e.Item as Audio;
+            _apiClient.NowPlaying(item, LastfmUser);
         }
 
         /// <summary>

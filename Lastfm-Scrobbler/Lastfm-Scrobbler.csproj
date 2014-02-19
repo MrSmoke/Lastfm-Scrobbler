@@ -69,6 +69,7 @@
     <Compile Include="Models\MobileSession.cs" />
     <Compile Include="Models\Requests\MobileSessionRequest.cs" />
     <Compile Include="Models\Requests\NowPlayingRequest.cs" />
+    <Compile Include="Models\Requests\TrackLoveRequest.cs" />
     <Compile Include="Models\Responses\BaseResponse.cs" />
     <Compile Include="Models\Responses\MobileSessionResponse.cs" />
     <Compile Include="Models\Requests\ScrobbleRequest.cs" />

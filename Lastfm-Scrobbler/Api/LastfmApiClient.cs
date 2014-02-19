@@ -93,6 +93,53 @@
             }
 
             Plugin.Logger.Error("Failed to send now playing for track: {0}", item.Name);
-        }      
+        }
+
+        /// <summary>
+        /// Loves or unloves a track
+        /// </summary>
+        /// <param name="item">The track</param>
+        /// <param name="user">The Lastfm User</param>
+        /// <param name="love">If the track is loved or not</param>
+        /// <returns></returns>
+        public async Task<bool> LoveTrack(Audio item, LastfmUser user, bool love = true)
+        {
+            var request = new TrackLoveRequest()
+            {
+                Artist = item.Artists.First(),
+                Track  = item.Name,
+                ApiKey = Strings.Keys.LastfmApiKey,
+                SessionKey = user.SessionKey
+            };
+
+            //Which method should we use
+            if (love)
+                request.Method = Strings.Methods.TrackLove;
+            else
+                request.Method = Strings.Methods.TrackUnlove;
+
+            //Send the request
+            var response = await Post<TrackLoveRequest, BaseResponse>(request);
+
+            if (response.isError())
+            {
+                Plugin.Logger.Error("{0} Failed to love = {3} track '{1}' - {2}", user.Username, item.Name, response.Message, love);
+                return false;
+            }
+
+            Plugin.Logger.Info("{0} {2}loved track '{1}'", user.Username, item.Name, (love ? "" : "un"));
+            return true;
+        }
+
+        /// <summary>
+        /// Unlove a track. This is the same as LoveTrack with love as false
+        /// </summary>
+        /// <param name="item">The track</param>
+        /// <param name="user">The Lastfm User</param>
+        /// <returns></returns>
+        public async Task<bool> UnloveTrack(Audio item, LastfmUser user)
+        {
+            return await LoveTrack(item, user, false);
+        }
     }
 }
