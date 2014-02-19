@@ -91,7 +91,14 @@
 
             if (LastfmUser == null)
             {
-                Plugin.Logger.Info("Could not find user");
+                Plugin.Logger.Debug("Could not find user");
+                return;
+            }
+
+            //User doesn't want to scrobble
+            if (!LastfmUser.Options.Scrobble)
+            {
+                Plugin.Logger.Debug("{0} ({1}) does not want to scrobble", e.Users.FirstOrDefault().Name, LastfmUser.Username);
                 return;
             }
 
@@ -116,7 +123,14 @@
 
             if (LastfmUser == null)
             {
-                Plugin.Logger.Info("Could not find user");
+                Plugin.Logger.Debug("Could not find user");
+                return;
+            }
+
+            //User doesn't want to scrobble
+            if (!LastfmUser.Options.Scrobble)
+            {
+                Plugin.Logger.Debug("{0} ({1}) does not want to scrobble", e.Users.FirstOrDefault().Name, LastfmUser.Username);
                 return;
             }
 

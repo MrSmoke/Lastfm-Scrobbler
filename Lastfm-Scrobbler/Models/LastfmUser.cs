@@ -10,5 +10,12 @@
         public string SessionKey { get; set; }
 
         public Guid MediaBrowserUserId { get; set; }
+
+        public LastFmUserOptions Options { get; set; }
+    }
+
+    public class LastFmUserOptions
+    {
+        public bool Scrobble { get; set; }
     }
 }

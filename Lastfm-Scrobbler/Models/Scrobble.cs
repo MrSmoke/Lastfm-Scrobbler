@@ -19,10 +19,4 @@
         [DataMember(Name = "ignored")]
         public bool Ignored { get; set; }
     }
-
-    [DataContract]
-    public class Scrobble
-    {
-
-    }
 }

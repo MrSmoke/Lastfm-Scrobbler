@@ -23,6 +23,10 @@
                             <input type="password" id="password" name="password" required="required" placeholder="Your Last.fm Password" />
                         </li>
                         <li>
+                            <input type="checkbox" class="chkStandardFilter" name="optionScrobble" id="optionScrobble" data-mini="true"  />
+                            <label for="optionScrobble">Enable Scrobbling for this user?</label>
+                        </li>
+                        <li>
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" onclick="history.back();">Cancel</button>
                         </li>
@@ -45,7 +49,10 @@
                 configDefaults: {
                     Username:           '',
                     SessionKey:         '',
-                    MediaBrowserUserId: ''
+                    MediaBrowserUserId: '',
+                    Options: {
+                        Scrobble: false
+                    }
                 },
 
                 $el: null,
@@ -64,6 +71,9 @@
                     //When we load everything, set the current user
                     $.when(loadConfig, loadUsers).then($.proxy(function () {
                         Dashboard.hideLoadingMsg();
+
+                        //Populate the inputs with the default selected user
+                        this.onUserChange();
                     }, this));
                 },
 
@@ -97,16 +107,11 @@
                 },
 
                 populateInputs: function (userData) {
-                    var username = '';
-                    var password = '';
+                    var data = $.extend({}, this.configDefaults, userData);
 
-                    if (userData) {
-                        username = userData.Username;
-                        password = userData.SessionKey;
-                    }
-
-                    this.$el.find('#username').val(username);
-                    this.$el.find('#password').val(password);
+                    this.$el.find('#username').val(data.Username);
+                    this.$el.find('#password').val(data.SessionKey);
+                    this.$el.find('#optionScrobble').checked(data.Options.Scrobble);
                 },
 
                 save: function (username, password) {
@@ -119,12 +124,19 @@
                         this._config.LastfmUsers.push(userConfig);
                     }
 
+                    //Attach current option settings to 
+                    userConfig.Options = this.getUIOptionsValues();
 
-                    //Dont save if nothing has changed
-                    if (userConfig.SessionKey == password)
-                        return;
 
                     Dashboard.showLoadingMsg();
+
+
+                    //Dont try and login again if the password field is still the SessionKey
+                    if (userConfig.SessionKey == password) {
+                        this.doSave();
+
+                        return;
+                    }
 
                     //Get session with user data
                     ApiClient.LastfmGetMobileSession(username, password).done($.proxy(function (data) {
@@ -136,9 +148,7 @@
                             userConfig.SessionKey = data.session.key;
 
                             //Save
-                            this.saveConfiguration().done(function (result) {
-                                Dashboard.processPluginConfigurationUpdateResult(result);
-                            });
+                            this.doSave();
 
                             return;
                         }
@@ -146,6 +156,12 @@
                         //Show error
                         Dashboard.showError(data.message || "Something went wrong");
                     }, this));
+                },
+
+                doSave: function () {
+                    return this.saveConfiguration().done(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                    });
                 },
 
                 getCurrentSelectedUserId: function () {
@@ -161,6 +177,15 @@
                     })[0];
 
                     return currentUser;
+                },
+
+                //Will return an options object with the current UI settings
+                getUIOptionsValues: function () {
+                    var options = $.extend({}, this.configDefaults.Options);
+
+                    options.Scrobble = this.$el.find('#optionScrobble').checked();
+
+                    return options;
                 },
 
                 onUserChange: function () {

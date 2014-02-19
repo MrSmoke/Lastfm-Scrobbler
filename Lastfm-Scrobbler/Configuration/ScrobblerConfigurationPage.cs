@@ -16,7 +16,7 @@ namespace LastfmScrobbler.Configuration
         /// <value>The Option.</value>
         public string Name
         {
-            get { return "LastfmScrobbler"; }
+            get { return "Last.fm Scrobbler"; }
         }
 
         /// <summary>
