@@ -7,6 +7,7 @@
     using Models.Requests;
     using Models.Responses;
     using Resources;
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Utils;
@@ -34,7 +35,7 @@
 
             //Log the key for debugging
             if (response != null)
-                Plugin.Logger.Debug("Got session key: {0}", response.Session.Key);
+                Plugin.Logger.Info("{0} successfully logged into Last.fm", username);
 
             return response;
         }
@@ -56,7 +57,7 @@
 
             if (response != null)
             {
-                Plugin.Logger.Info("Scrobbled track: {0}", item.Name);
+                Plugin.Logger.Info("{0} played '{1}'", user.Username, item.Name);
                 return;
             }
 
@@ -67,19 +68,27 @@
         {
             var request = new NowPlayingRequest()
             {
-                Artist = item.Artists.First(),
-                Track  = item.Name,
+                Artist   = item.Artists.First(),
+                Track    = item.Name,
 
                 ApiKey = Strings.Keys.LastfmApiKey,
                 Method = Strings.Methods.NowPlaying,
                 SessionKey = user.SessionKey
             };
 
+            //Add duration
+            if (item.RunTimeTicks != null)
+            {
+                request.Duration = Convert.ToInt32(TimeSpan.FromTicks((long)item.RunTimeTicks).TotalSeconds);
+            }
+
+            Plugin.Logger.Debug("Now playing track {0} with duration {1}", item.Name, request.Duration);
+
             var response = await Post<NowPlayingRequest, ScrobbleResponse>(request);
 
             if (response != null)
             {
-                Plugin.Logger.Info("Sent now playing request for track: {0}", item.Name);
+                Plugin.Logger.Info("{0} is now playing '{1}'", user.Username, item.Name);
                 return;
             }
 
