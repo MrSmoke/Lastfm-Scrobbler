@@ -60,6 +60,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Api\BaseLastfmApiClient.cs" />
     <Compile Include="Api\LastfmApiClient.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Configuration\ScrobblerConfigurationPage.cs" />
