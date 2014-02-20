@@ -106,8 +106,23 @@
             if (!(e.Item is Audio))
                 return;
 
+            var item = e.Item as Audio;
+
+            //Make sure the track has been fully played
             if (!e.PlayedToCompletion)
+            {
+                Plugin.Logger.Debug("'{0}' not played to completion, not scrobbling", item.Name);
                 return;
+            }
+
+            //Played to completion will sometimes be true even if the track has only played 10% so check the playback ourselfs (it must use the app settings or something)
+            //Make sure 80% of the track has been played back
+            var playPercent = ((double)e.PlaybackPositionTicks / item.RunTimeTicks) * 100;
+            if (playPercent < 80)
+            {
+                Plugin.Logger.Debug("'{0}' only played {1}%, not scrobbling", item.Name, playPercent);
+                return;
+            }
 
             var LastfmUser = Utils.UserHelpers.GetUser(e.Users.First());
 
@@ -130,7 +145,6 @@
                 return;
             }
 
-            var item = e.Item as Audio;
             _apiClient.Scrobble(item, LastfmUser);
         }
 
