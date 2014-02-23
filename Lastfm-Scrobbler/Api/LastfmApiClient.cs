@@ -141,5 +141,17 @@
         {
             return await LoveTrack(item, user, false);
         }
+
+        public async Task<LovedTracksResponse> GetLovedTracks(LastfmUser user)
+        {
+            var request = new GetLovedTracksRequest() 
+            {
+                User   = user.Username,
+                ApiKey = Strings.Keys.LastfmApiKey,
+                Method = Strings.Methods.GetLovedTracks
+            };
+
+            return await Get<BaseRequest, LovedTracksResponse>(request);
+        }
     }
 }

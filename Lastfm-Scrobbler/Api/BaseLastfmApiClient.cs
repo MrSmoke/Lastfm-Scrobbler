@@ -9,6 +9,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using LastfmScrobbler.Utils;
+    using System.Collections.Generic;
 
     public class BaseLastfmApiClient
     {
@@ -64,10 +65,41 @@
             }
         }
 
-        #region Private methods
-        private string BuildGetUrl(string method)
+        public async Task<TResponse> Get<TRequest, TResponse>(TRequest request) where TRequest: BaseRequest where TResponse: BaseResponse
         {
-            return String.Format("{0}/{1}/?method={2}&api_key={3}&format=json", Strings.Endpoints.LastfmApi, API_VERSION, method, Strings.Keys.LastfmApiKey);
+            using (var stream = await _httpClient.Get(new HttpRequestOptions()
+            {
+                Url                   = BuildGetUrl(request.Method, request.ToDictionary()),
+                ResourcePool          = Plugin.LastfmResourcePool,
+                CancellationToken     = CancellationToken.None,
+                EnableHttpCompression = false,
+            }))
+            {
+                try
+                {
+                    var result = _jsonSerializer.DeserializeFromStream<TResponse>(stream);
+
+                    //Lets Log the error here to ensure all errors are logged
+                    if (result.isError())
+                        Plugin.Logger.Error(result.Message);
+
+                    return result;
+                }
+                catch (Exception e)
+                {
+                    Plugin.Logger.Debug(e.Message);
+                }
+
+                return null;
+            }
+        }
+
+        #region Private methods
+        private string BuildGetUrl(string method, Dictionary<string, string> requestData)
+        {
+            var qs = Utils.Helpers.DictionaryToQueryString(requestData);
+
+            return String.Format("{0}/{1}/?{2}&format=json", Strings.Endpoints.LastfmApi, API_VERSION, qs);
         }
 
         private string BuildPostUrl(bool secure = false)
