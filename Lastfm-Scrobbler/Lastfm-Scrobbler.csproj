@@ -67,14 +67,17 @@
     <Compile Include="Models\Requests\BasePostModel.cs" />
     <Compile Include="Models\LastfmUser.cs" />
     <Compile Include="Models\MobileSession.cs" />
+    <Compile Include="Models\Requests\GetLovedTracksRequest.cs" />
     <Compile Include="Models\Requests\MobileSessionRequest.cs" />
     <Compile Include="Models\Requests\NowPlayingRequest.cs" />
     <Compile Include="Models\Requests\TrackLoveRequest.cs" />
     <Compile Include="Models\Responses\BaseResponse.cs" />
+    <Compile Include="Models\Responses\LovedTracksResponse.cs" />
     <Compile Include="Models\Responses\MobileSessionResponse.cs" />
     <Compile Include="Models\Requests\ScrobbleRequest.cs" />
     <Compile Include="Models\Responses\ScrobbleResponse.cs" />
     <Compile Include="Models\Scrobble.cs" />
+    <Compile Include="Models\Tracks.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Strings.cs" />
