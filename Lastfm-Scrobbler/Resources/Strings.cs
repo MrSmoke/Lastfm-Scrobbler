@@ -18,6 +18,7 @@
             public static string TrackLove        = "track.love";
             public static string TrackUnlove      = "track.unlove";
             public static string GetLovedTracks   = "user.getLovedTracks";
+            public static string GetTracks        = "library.getTracks";
         }
 
         public static class Keys

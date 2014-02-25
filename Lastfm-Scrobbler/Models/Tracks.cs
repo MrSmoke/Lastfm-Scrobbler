@@ -11,6 +11,9 @@
 
         [DataMember(Name = "name")]
         public string Name { get; set; }
+
+        [DataMember(Name = "mbid")]
+        public string MusicBrainzId { get; set; }
     }
 
     [DataContract]
@@ -26,5 +29,12 @@
     public class LastfmLovedTrack : BaseLastfmTrack
     {
 
+    }
+
+    [DataContract]
+    public class LastfmTrack : BaseLastfmTrack
+    {
+        [DataMember(Name="playcount")]
+        public int PlayCount { get; set; }
     }
 }

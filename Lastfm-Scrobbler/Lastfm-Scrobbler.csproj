@@ -64,14 +64,16 @@
     <Compile Include="Api\LastfmApiClient.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Configuration\ScrobblerConfigurationPage.cs" />
-    <Compile Include="Models\Requests\BasePostModel.cs" />
+    <Compile Include="Models\Requests\BaseRequest.cs" />
     <Compile Include="Models\LastfmUser.cs" />
     <Compile Include="Models\MobileSession.cs" />
     <Compile Include="Models\Requests\GetLovedTracksRequest.cs" />
+    <Compile Include="Models\Requests\GetTracksRequest.cs" />
     <Compile Include="Models\Requests\MobileSessionRequest.cs" />
     <Compile Include="Models\Requests\NowPlayingRequest.cs" />
     <Compile Include="Models\Requests\TrackLoveRequest.cs" />
     <Compile Include="Models\Responses\BaseResponse.cs" />
+    <Compile Include="Models\Responses\GetTracksResponse.cs" />
     <Compile Include="Models\Responses\LovedTracksResponse.cs" />
     <Compile Include="Models\Responses\MobileSessionResponse.cs" />
     <Compile Include="Models\Requests\ScrobbleRequest.cs" />
@@ -82,8 +84,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Strings.cs" />
     <Compile Include="RestApi.cs" />
+    <Compile Include="ScheduledTasks\ImportLastfmData.cs" />
     <Compile Include="ServerEntryPoint.cs" />
     <Compile Include="Utils\Helpers.cs" />
+    <Compile Include="Utils\StringHelper.cs" />
     <Compile Include="Utils\UserHelpers.cs" />
   </ItemGroup>
   <ItemGroup>

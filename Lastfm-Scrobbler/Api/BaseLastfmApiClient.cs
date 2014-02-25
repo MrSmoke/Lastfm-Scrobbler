@@ -67,11 +67,16 @@
 
         public async Task<TResponse> Get<TRequest, TResponse>(TRequest request) where TRequest: BaseRequest where TResponse: BaseResponse
         {
+            return await Get<TRequest, TResponse>(request, CancellationToken.None);
+        }
+
+        public async Task<TResponse> Get<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken) where TRequest: BaseRequest where TResponse: BaseResponse
+        {
             using (var stream = await _httpClient.Get(new HttpRequestOptions()
             {
                 Url                   = BuildGetUrl(request.Method, request.ToDictionary()),
                 ResourcePool          = Plugin.LastfmResourcePool,
-                CancellationToken     = CancellationToken.None,
+                CancellationToken     = cancellationToken,
                 EnableHttpCompression = false,
             }))
             {

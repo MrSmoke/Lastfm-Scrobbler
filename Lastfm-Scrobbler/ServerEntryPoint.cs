@@ -91,6 +91,10 @@
 
             var item = e.Item as Audio;
 
+            //Dont do if syncing
+            if (Plugin.Syncing)
+                return;
+
             _apiClient.LoveTrack(item, LastfmUser, e.UserData.IsFavorite);
         }
 

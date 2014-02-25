@@ -34,4 +34,10 @@
             };
         }
     }
+
+    public interface IPagedRequest
+    {
+        int Limit { get; set; }
+        int Page  { get; set; }
+    }
 }

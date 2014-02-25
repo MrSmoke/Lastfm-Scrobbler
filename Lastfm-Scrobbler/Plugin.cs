@@ -15,10 +15,9 @@
     public class Plugin : BasePlugin<PluginConfiguration>
     {
         /// <summary>
-        /// Used to store the current api session key which is set after authenticating at plugin start
+        /// 
         /// </summary>
-        internal string SessionKey { get; set; }
-        
+        public static bool Syncing { get; internal set; }
         
         internal static readonly SemaphoreSlim LastfmResourcePool = new SemaphoreSlim(4, 4);
 
