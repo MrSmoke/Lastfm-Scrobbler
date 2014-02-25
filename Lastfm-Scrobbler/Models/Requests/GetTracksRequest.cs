@@ -1,6 +1,5 @@
 ﻿namespace LastfmScrobbler.Models.Requests
 {
-    using System;
     using System.Collections.Generic;
 
     public class GetTracksRequest : BaseRequest, IPagedRequest
@@ -14,10 +13,10 @@
         {
             return new Dictionary<string, string>(base.ToDictionary()) 
             {
-                { "user",   this.User   },
-                { "artist", this.Artist },
-                { "limit" , this.Limit.ToString() },
-                { "page"  , this.Page.ToString()  }
+                { "user",   User   },
+                { "artist", Artist },
+                { "limit" , Limit.ToString() },
+                { "page"  , Page.ToString()  }
             };
         }
     }

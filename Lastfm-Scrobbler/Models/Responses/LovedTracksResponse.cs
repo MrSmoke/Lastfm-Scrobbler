@@ -1,6 +1,5 @@
 ﻿namespace LastfmScrobbler.Models.Responses
 {
-    using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 

@@ -11,9 +11,9 @@
         [DataMember(Name="error")]
         public int ErrorCode { get; set; }
 
-        public bool isError()
+        public bool IsError()
         {
-            return this.ErrorCode > 0;
+            return ErrorCode > 0;
         }
     }
 }

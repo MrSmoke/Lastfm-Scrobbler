@@ -39,7 +39,7 @@
 
         public bool IsLastPage()
         {
-            return Page == TotalPages;
+            return Page.Equals(TotalPages);
         }
     }
 }

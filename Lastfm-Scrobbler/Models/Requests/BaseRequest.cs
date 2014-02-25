@@ -14,10 +14,10 @@
 
         public virtual Dictionary<string, string> ToDictionary()
         {
-            return new Dictionary<string, string>()
+            return new Dictionary<string, string>
             {
-                { "api_key", this.ApiKey },
-                { "method", this.Method }
+                { "api_key", ApiKey },
+                { "method",  Method }
             };
         }
     }
@@ -30,7 +30,7 @@
         {
             return new Dictionary<string, string>(base.ToDictionary()) 
             {
-                { "sk", this.SessionKey },
+                { "sk", SessionKey },
             };
         }
     }

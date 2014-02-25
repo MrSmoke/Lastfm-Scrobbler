@@ -1,19 +1,19 @@
 ﻿namespace LastfmScrobbler.Api
 {
+    using MediaBrowser.Common.Net;
+    using MediaBrowser.Model.Serialization;
     using Models.Requests;
     using Models.Responses;
     using Resources;
-    using MediaBrowser.Common.Net;
-    using MediaBrowser.Model.Serialization;
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using LastfmScrobbler.Utils;
-    using System.Collections.Generic;
+    using Utils;
 
     public class BaseLastfmApiClient
     {
-        private const string API_VERSION = "2.0";
+        private const string ApiVersion = "2.0";
 
         private readonly IHttpClient     _httpClient;
         private readonly IJsonSerializer _jsonSerializer;
@@ -38,7 +38,7 @@
             //Append the signature
             Helpers.AppendSignature(ref data);
 
-            using (var stream = await _httpClient.Post(new HttpRequestOptions()
+            using (var stream = await _httpClient.Post(new HttpRequestOptions
             {
                 Url                   = BuildPostUrl(request.Secure),
                 ResourcePool          = Plugin.LastfmResourcePool,
@@ -51,7 +51,7 @@
                     var result = _jsonSerializer.DeserializeFromStream<TResponse>(stream);
 
                     //Lets Log the error here to ensure all errors are logged
-                    if (result.isError())
+                    if (result.IsError())
                         Plugin.Logger.Error(result.Message);
 
                     return result;
@@ -72,9 +72,9 @@
 
         public async Task<TResponse> Get<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken) where TRequest: BaseRequest where TResponse: BaseResponse
         {
-            using (var stream = await _httpClient.Get(new HttpRequestOptions()
+            using (var stream = await _httpClient.Get(new HttpRequestOptions
             {
-                Url                   = BuildGetUrl(request.Method, request.ToDictionary()),
+                Url                   = BuildGetUrl(request.ToDictionary()),
                 ResourcePool          = Plugin.LastfmResourcePool,
                 CancellationToken     = cancellationToken,
                 EnableHttpCompression = false,
@@ -85,7 +85,7 @@
                     var result = _jsonSerializer.DeserializeFromStream<TResponse>(stream);
 
                     //Lets Log the error here to ensure all errors are logged
-                    if (result.isError())
+                    if (result.IsError())
                         Plugin.Logger.Error(result.Message);
 
                     return result;
@@ -100,19 +100,22 @@
         }
 
         #region Private methods
-        private string BuildGetUrl(string method, Dictionary<string, string> requestData)
+        private static string BuildGetUrl(Dictionary<string, string> requestData)
         {
-            var qs = Utils.Helpers.DictionaryToQueryString(requestData);
-
-            return String.Format("{0}/{1}/?{2}&format=json", Strings.Endpoints.LastfmApi, API_VERSION, qs);
+            return String.Format("http://{0}/{1}/?format=json&{2}",
+                                    Strings.Endpoints.LastfmApi,
+                                    ApiVersion,
+                                    Helpers.DictionaryToQueryString(requestData)
+                                );
         }
 
-        private string BuildPostUrl(bool secure = false)
+        private static string BuildPostUrl(bool secure = false)
         {
-            if (secure)
-                return String.Format("{0}/{1}/?format=json", Strings.Endpoints.LastfmApiS, API_VERSION);
-
-            return String.Format("{0}/{1}/?format=json", Strings.Endpoints.LastfmApi, API_VERSION);
+            return String.Format("{0}://{1}/{2}/?format=json",
+                                    secure ? "https" : "http",
+                                    Strings.Endpoints.LastfmApi,
+                                    ApiVersion
+                                );
         }
         #endregion
     }

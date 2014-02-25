@@ -1,6 +1,8 @@
-﻿namespace LastfmScrobbler.Utils
+﻿using MediaBrowser.Controller.Entities.Audio;
+
+namespace LastfmScrobbler.Utils
 {
-    using LastfmScrobbler.Resources;
+    using Resources;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -9,25 +11,26 @@
 
     public static class Helpers
     {
-        public static string CreateMD5Hash(string input)
+        public static string CreateMd5Hash(string input)
         {
             // Use input string to calculate MD5 hash
-            MD5 md5 = MD5.Create();
+            var md5 = MD5.Create();
 
-            byte[] inputBytes = Encoding.ASCII.GetBytes(input);
-            byte[] hashBytes = md5.ComputeHash(inputBytes);
+            var inputBytes = Encoding.ASCII.GetBytes(input);
+            var hashBytes  = md5.ComputeHash(inputBytes);
 
             // Convert the byte array to hexadecimal string
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < hashBytes.Length; i++)
-                sb.Append(hashBytes[i].ToString("X2"));
+            var sb = new StringBuilder();
+            
+            foreach (byte b in hashBytes)
+                sb.Append(b.ToString("X2"));
 
             return sb.ToString();
         }
 
         public static void AppendSignature(ref Dictionary<string, string> data)
         {
-            data.Add("api_sig", CreateSig(data));
+            data.Add("api_sig", CreateSignature(data));
         }
 
         public static int ToTimestamp(DateTime date)
@@ -37,11 +40,9 @@
 
         public static DateTime FromTimestamp(double timestamp)
         {
-            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            var date = new DateTime(1970, 1, 1, 0, 0, 0, 0);
 
-            dtDateTime = dtDateTime.AddSeconds(timestamp).ToLocalTime();
-
-            return dtDateTime;
+            return date.AddSeconds(timestamp).ToLocalTime();
         }
 
         public static int CurrentTimestamp()
@@ -54,9 +55,9 @@
             return String.Join("&", data.Where(k => !String.IsNullOrWhiteSpace(k.Value)).Select(kvp => String.Format("{0}={1}", Uri.EscapeUriString(kvp.Key), Uri.EscapeUriString(kvp.Value))));
         }
 
-        private static string CreateSig(Dictionary<string, string> data)
+        private static string CreateSignature(Dictionary<string, string> data)
         {
-            StringBuilder s = new StringBuilder();
+            var s = new StringBuilder();
 
             foreach (var item in data.OrderBy(x => x.Key))
                 s.Append(String.Format("{0}{1}", item.Key, item.Value));
@@ -64,7 +65,26 @@
             //Append seceret
             s.Append(Strings.Keys.LastfmApiSeceret);
 
-            return Helpers.CreateMD5Hash(s.ToString());
+            return CreateMd5Hash(s.ToString());
+        }
+
+        //The nuget doesn't seem to have GetProviderId for artists
+        public static string GetMusicBrainzArtistId(MusicArtist artist)
+        {
+            string mbArtistId;
+            
+            if (artist.ProviderIds == null)
+            {
+                Plugin.Logger.Debug("No provider id: {0}", artist.Name);
+                return null;
+            }
+
+            if (artist.ProviderIds.TryGetValue("MusicBrainzArtist", out mbArtistId)) 
+                return mbArtistId;
+
+            Plugin.Logger.Debug("No MBID: {0}", artist.Name);
+            
+            return null;
         }
     }
 }

@@ -111,7 +111,8 @@
 
                     this.$el.find('#username').val(data.Username);
                     this.$el.find('#password').val(data.SessionKey);
-                    this.$el.find('#optionScrobble').checked(data.Options.Scrobble);
+                    this.$el.find('#optionScrobble').prop('checked', data.Options.Scrobble).checkboxradio('refresh');
+                    //Dont forget to call checkboxradio('refresh') otherwise the UI wont update
                 },
 
                 save: function (username, password) {

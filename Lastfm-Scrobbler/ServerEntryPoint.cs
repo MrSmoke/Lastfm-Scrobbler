@@ -2,8 +2,7 @@
 {
     using Api;
     using Configuration;
-    using MediaBrowser.Common.Net;
-    using MediaBrowser.Common.Security;
+    using MediaBrowser.Common.Net;   
     using MediaBrowser.Controller.Entities.Audio;
     using MediaBrowser.Controller.Library;
     using MediaBrowser.Controller.Plugins;
@@ -12,16 +11,14 @@
     using MediaBrowser.Model.Logging;
     using MediaBrowser.Model.Serialization;
     using System.Linq;
-    using System.Threading.Tasks;
 
 
     /// <summary>
     /// Class ServerEntryPoint
     /// </summary>
-    public class ServerEntryPoint : IServerEntryPoint, IRequiresRegistration
+    public class ServerEntryPoint : IServerEntryPoint
     {
         private readonly ISessionManager  _sessionManager;
-        private readonly IJsonSerializer  _jsonSerializer;
         private readonly IUserDataManager _userDataManager;
 
         private LastfmApiClient _apiClient;
@@ -32,21 +29,14 @@
         /// <value>The instance.</value>
         public static ServerEntryPoint Instance { get; private set; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ServerEntryPoint" /> class.
-        /// </summary>
-        /// <param name="taskManager">The task manager.</param>
-        /// <param name="appPaths">The app paths.</param>
-        /// <param name="logManager"></param>
         public ServerEntryPoint(ISessionManager sessionManager, IJsonSerializer jsonSerializer, IHttpClient httpClient, ILogManager logManager, IUserDataManager userDataManager)
         {
             Plugin.Logger = logManager.GetLogger(Plugin.Instance.Name);
 
             _sessionManager  = sessionManager;
-            _jsonSerializer  = jsonSerializer;
             _userDataManager = userDataManager;
 
-            _apiClient = new LastfmApiClient(httpClient, _jsonSerializer);
+            _apiClient = new LastfmApiClient(httpClient, jsonSerializer);
             
             Instance = this;
         }
@@ -57,9 +47,9 @@
         public void Run()
         {
             //Bind events
-            _sessionManager.PlaybackStart   += this.PlaybackStart;
-            _sessionManager.PlaybackStopped += this.PlaybackStopped;
-            _userDataManager.UserDataSaved  += this.UserDataSaved;
+            _sessionManager.PlaybackStart   += PlaybackStart;
+            _sessionManager.PlaybackStopped += PlaybackStopped;
+            _userDataManager.UserDataSaved  += UserDataSaved;
         }
 
         /// <summary>
@@ -75,15 +65,14 @@
             if (!e.SaveReason.Equals(UserDataSaveReason.UpdateUserRating))
                 return;
 
-            var LastfmUser = Utils.UserHelpers.GetUser(e.UserId);
-
-            if (LastfmUser == null)
+            var lastfmUser = Utils.UserHelpers.GetUser(e.UserId);
+            if (lastfmUser == null)
             {
                 Plugin.Logger.Debug("Could not find user");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(LastfmUser.SessionKey))
+            if (string.IsNullOrWhiteSpace(lastfmUser.SessionKey))
             {
                 Plugin.Logger.Info("No session key present, aborting");
                 return;
@@ -95,13 +84,12 @@
             if (Plugin.Syncing)
                 return;
 
-            _apiClient.LoveTrack(item, LastfmUser, e.UserData.IsFavorite);
+            _apiClient.LoveTrack(item, lastfmUser, e.UserData.IsFavorite);
         }
 
 
         /// <summary>
         /// Let last.fm know when a track has finished.
-        
         /// Playback stopped is run when a track is finished.
         /// </summary>
         private async void PlaybackStopped(object sender, PlaybackStopEventArgs e)
@@ -121,6 +109,12 @@
 
             //Played to completion will sometimes be true even if the track has only played 10% so check the playback ourselfs (it must use the app settings or something)
             //Make sure 80% of the track has been played back
+            if (e.PlaybackPositionTicks == null)
+            {
+                Plugin.Logger.Debug("Playback ticks for {0} is null", item.Name);
+                return;
+            }
+
             var playPercent = ((double)e.PlaybackPositionTicks / item.RunTimeTicks) * 100;
             if (playPercent < 80)
             {
@@ -128,28 +122,27 @@
                 return;
             }
 
-            var LastfmUser = Utils.UserHelpers.GetUser(e.Users.First());
-
-            if (LastfmUser == null)
+            var lastfmUser = Utils.UserHelpers.GetUser(e.Users.First());
+            if (lastfmUser == null)
             {
                 Plugin.Logger.Debug("Could not find user");
                 return;
             }
 
             //User doesn't want to scrobble
-            if (!LastfmUser.Options.Scrobble)
+            if (!lastfmUser.Options.Scrobble)
             {
-                Plugin.Logger.Debug("{0} ({1}) does not want to scrobble", e.Users.FirstOrDefault().Name, LastfmUser.Username);
+                Plugin.Logger.Debug("{0} ({1}) does not want to scrobble", e.Users.FirstOrDefault().Name, lastfmUser.Username);
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(LastfmUser.SessionKey))
+            if (string.IsNullOrWhiteSpace(lastfmUser.SessionKey))
             {
                 Plugin.Logger.Info("No session key present, aborting");
                 return;
             }
 
-            _apiClient.Scrobble(item, LastfmUser);
+            _apiClient.Scrobble(item, lastfmUser);
         }
 
         /// <summary>
@@ -161,29 +154,28 @@
             if (!(e.Item is Audio))
                 return;
 
-            var LastfmUser = Utils.UserHelpers.GetUser(e.Users.First());
-
-            if (LastfmUser == null)
+            var lastfmUser = Utils.UserHelpers.GetUser(e.Users.First());
+            if (lastfmUser == null)
             {
                 Plugin.Logger.Debug("Could not find user");
                 return;
             }
 
             //User doesn't want to scrobble
-            if (!LastfmUser.Options.Scrobble)
+            if (!lastfmUser.Options.Scrobble)
             {
-                Plugin.Logger.Debug("{0} ({1}) does not want to scrobble", e.Users.FirstOrDefault().Name, LastfmUser.Username);
+                Plugin.Logger.Debug("{0} ({1}) does not want to scrobble", e.Users.FirstOrDefault().Name, lastfmUser.Username);
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(LastfmUser.SessionKey))
+            if (string.IsNullOrWhiteSpace(lastfmUser.SessionKey))
             {
                 Plugin.Logger.Info("No session key present, aborting");
                 return;
             }
 
             var item = e.Item as Audio;
-            _apiClient.NowPlaying(item, LastfmUser);
+            _apiClient.NowPlaying(item, lastfmUser);
         }
 
         /// <summary>
@@ -201,23 +193,13 @@
         public void Dispose()
         {
             //Unbind events
-            _sessionManager.PlaybackStart   -= this.PlaybackStart;
-            _sessionManager.PlaybackStopped -= this.PlaybackStopped;
-            _userDataManager.UserDataSaved  -= this.UserDataSaved;
+            _sessionManager.PlaybackStart   -= PlaybackStart;
+            _sessionManager.PlaybackStopped -= PlaybackStopped;
+            _userDataManager.UserDataSaved  -= UserDataSaved;
 
             //Clean up
             _apiClient = null;
 
-        }
-
-        /// <summary>
-        /// Loads our registration information
-        ///
-        /// </summary>
-        /// <returns></returns>
-        public async Task LoadRegistrationInfoAsync()
-        {
-            //Plugin.Instance.Registration = await PluginSecurityManager.GetRegistrationStatus("LastfmScrobbler", "[**MB2CompatibleFeature**]").ConfigureAwait(false);
         }
     }
 }

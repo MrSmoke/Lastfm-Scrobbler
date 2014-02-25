@@ -1,6 +1,5 @@
 ﻿namespace LastfmScrobbler.Models
 {
-    using System;
     using System.Runtime.Serialization;
 
     [DataContract]
@@ -28,7 +27,6 @@
 
     public class LastfmLovedTrack : BaseLastfmTrack
     {
-
     }
 
     [DataContract]

@@ -1,9 +1,8 @@
 ﻿namespace LastfmScrobbler
 {
-    using LastfmScrobbler.Configuration;
+    using Configuration;
     using MediaBrowser.Common.Configuration;
     using MediaBrowser.Common.Plugins;
-    using MediaBrowser.Model.Entities;
     using MediaBrowser.Model.Logging;
     using MediaBrowser.Model.Plugins;
     using MediaBrowser.Model.Serialization;
@@ -15,7 +14,7 @@
     public class Plugin : BasePlugin<PluginConfiguration>
     {
         /// <summary>
-        /// 
+        /// Flag set when an Import Syncing task is running
         /// </summary>
         public static bool Syncing { get; internal set; }
         
@@ -61,11 +60,6 @@
         /// </summary>
         /// <value>The instance.</value>
         public static Plugin Instance { get; private set; }
-
-        /// <summary>
-        /// Holds our registration information
-        /// </summary>
-        public MBRegistrationRecord Registration { get; set; }
 
         /// <summary>
         /// Updates the configuration.

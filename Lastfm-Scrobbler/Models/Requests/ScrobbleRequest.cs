@@ -1,6 +1,5 @@
 ﻿namespace LastfmScrobbler.Models.Requests
 {
-    using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -20,9 +19,9 @@
         {
             return new Dictionary<string, string>(base.ToDictionary()) 
             {
-                { "track", this.Track },
-                { "artist", this.Artist },
-                { "timestamp", this.Timestamp.ToString() }
+                { "track",     Track },
+                { "artist",    Artist },
+                { "timestamp", Timestamp.ToString() }
             };
         }
     }

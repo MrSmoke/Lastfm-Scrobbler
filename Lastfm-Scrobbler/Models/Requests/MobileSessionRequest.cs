@@ -11,8 +11,8 @@
         {
             return new Dictionary<string, string>(base.ToDictionary()) 
             {
-                { "password", this.Password },
-                { "username", this.Username },
+                { "password", Password },
+                { "username", Username },
             };
         }
     }

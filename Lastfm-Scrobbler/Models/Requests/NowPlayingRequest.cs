@@ -19,9 +19,9 @@
         {
             return new Dictionary<string, string>(base.ToDictionary()) 
             {   
-                { "track",    this.Track               },
-                { "artist",   this.Artist              },
-                { "duration", this.Duration.ToString() }
+                { "track",    Track               },
+                { "artist",   Artist              },
+                { "duration", Duration.ToString() }
             };
         }
     }

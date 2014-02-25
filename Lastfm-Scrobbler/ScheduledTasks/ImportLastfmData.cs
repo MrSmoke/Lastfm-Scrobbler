@@ -1,7 +1,6 @@
 ﻿namespace LastfmScrobbler.ScheduledTasks
 {
-    using LastfmScrobbler.Api;
-    using LastfmScrobbler.Models;
+    using Api;
     using MediaBrowser.Common.Net;
     using MediaBrowser.Common.ScheduledTasks;
     using MediaBrowser.Controller.Entities;
@@ -9,18 +8,19 @@
     using MediaBrowser.Controller.Library;
     using MediaBrowser.Model.Entities;
     using MediaBrowser.Model.Serialization;
+    using Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Utils;
 
     class ImportLastfmData : IScheduledTask
     {
         private readonly IUserManager     _userManager;
         private readonly LastfmApiClient  _apiClient;
         private readonly IUserDataManager _userDataManager;
-        private readonly IJsonSerializer _json;
 
         public ImportLastfmData(IHttpClient httpClient, IJsonSerializer jsonSerializer, IUserManager userManager, IUserDataManager userDataManager)
         {
@@ -28,9 +28,6 @@
             _userDataManager = userDataManager;
             
             _apiClient = new LastfmApiClient(httpClient, jsonSerializer);
-
-            //DEBUG
-            _json = jsonSerializer;
         }
 
         public string Name
@@ -45,7 +42,7 @@
 
         public string Description
         {
-            get { return "Import play counts and favourite tracks"; }
+            get { return "Import play counts and favourite tracks for each user with Last.fm accounted configured"; }
         }
 
         public IEnumerable<ITaskTrigger> GetDefaultTriggers()
@@ -60,7 +57,7 @@
         {
              //Get all users
             var users = _userManager.Users.Where(u => {
-                var user = Utils.UserHelpers.GetUser(u);
+                var user = UserHelpers.GetUser(u);
                 
                 return user != null && !String.IsNullOrWhiteSpace(user.SessionKey);
             }).ToList();
@@ -86,106 +83,21 @@
             Plugin.Syncing = false;
         }
 
-        //To start with im going to sync the tracks by artist
-        //If theres problems with doing it this way ill look into another method
-        private async Task SyncDataforUserByArtist(User user, IProgress<double> progress, CancellationToken cancellationToken, double progressStage)
+        
+        private async Task SyncDataforUserByArtistBulk(User user, IProgress<double> progress, CancellationToken cancellationToken, double progressStage)
         {
-            var artists = user.RootFolder.GetRecursiveChildren().OfType<MusicArtist>();
-            if (artists == null)
-            {
-                Plugin.Logger.Info("No artists");
-                return;
-            }
+            var artists = user.RootFolder.GetRecursiveChildren().OfType<MusicArtist>().ToList();
 
-            var totalArtists = artists.Count();
+            var lastFmUser        = UserHelpers.GetUser(user);
+            var totalArtists      = artists.Count;
             var progressedArtists = 0;
-
-            var lastFmUser = Utils.UserHelpers.GetUser(user);
 
             //Get loved tracks
             var lovedTracksReponse = await _apiClient.GetLovedTracks(lastFmUser).ConfigureAwait(false);
             var hasLovedTracks     = lovedTracksReponse.HasLovedTracks();
 
-            //Loop through each artist
-            foreach (var artist in artists)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                //Report progress
-                double currentProgress = ((double)++progressedArtists / totalArtists) * progressStage;
-                progress.Report(currentProgress * 100);
-
-                //Get tracks from the Api
-                var response = await _apiClient.GetTracks(lastFmUser, artist, cancellationToken).ConfigureAwait(false);
-                if (response == null || !response.HasTracks())
-                {
-                    Plugin.Logger.Debug("{0} has no '{1}' tracks in Last.fm", user.Name, artist.Name);
-                    continue;
-                }
-
-                //Ensure its the same artist
-                var lastfmTracks = response.Tracks.Tracks.Where(t => t.Artist.MusicBrainzId.Equals(GetMusicBrainzArtistId(artist)));
-
-                //Loop through each song
-                foreach (var song in artist.GetRecursiveChildren().OfType<Audio>())
-                {
-                    var matchedSong = lastfmTracks.FirstOrDefault(t => Utils.StringHelper.IsLike(t.Name, song.Name));
-                    if (matchedSong == null)
-                        continue;
-
-                    Plugin.Logger.Debug("Found match for {0}", song.Name);
-
-                    var userData = _userDataManager.GetUserData(user.Id, song.GetUserDataKey());
-
-                    //Check if its a favourite track
-                    if (hasLovedTracks && lastFmUser.Options.SyncFavourites)
-                    {
-                        var favourited = lovedTracksReponse.LovedTracks.Tracks.Any(t => t.MusicBrainzId.Equals(matchedSong.MusicBrainzId));
-
-                        userData.IsFavorite = favourited;
-
-                        Plugin.Logger.Debug("{0} Favourite: {1}", song.Name, favourited);
-                    }
-
-                    //Update the play count
-                    if (matchedSong.PlayCount > 0)
-                    {
-                        userData.Played    = true;
-                        userData.PlayCount = Math.Max(userData.PlayCount, matchedSong.PlayCount);
-                    }
-                    else
-                    {
-                        userData.Played         = false;
-                        userData.PlayCount      = 0;
-                        userData.LastPlayedDate = null;
-                    }
-                    
-                    await _userDataManager.SaveUserData(user.Id, song, userData, UserDataSaveReason.UpdateUserRating, cancellationToken);
-                }
-            }
-        }
-
-        //New method which downloads the entire library first
-        private async Task SyncDataforUserByArtistBulk(User user, IProgress<double> progress, CancellationToken cancellationToken, double progressStage)
-        {
-            var artists = user.RootFolder.GetRecursiveChildren().OfType<MusicArtist>();
-            if (artists == null)
-            {
-                Plugin.Logger.Info("No artists");
-                return;
-            }
-
-            var totalArtists = artists.Count();
-            var progressedArtists = 0;
-
-            var lastFmUser = Utils.UserHelpers.GetUser(user);
-
-            //Get loved tracks
-            var lovedTracksReponse = await _apiClient.GetLovedTracks(lastFmUser).ConfigureAwait(false);
-            var hasLovedTracks = lovedTracksReponse.HasLovedTracks();
-
             //Get entire library
-            var usersTracks = await GetUsersLibrary(lastFmUser, cancellationToken);
+            var usersTracks = await GetUsersLibrary(lastFmUser, progress, cancellationToken, (progressStage - (progressStage / 4)));
 
             if (usersTracks.Count == 0)
             {
@@ -193,8 +105,8 @@
                 return;
             }
 
-            //Group the library y artist
-            var userLibrary = usersTracks.GroupBy(t => t.Artist.MusicBrainzId);
+            //Group the library by artist
+            var userLibrary = usersTracks.GroupBy(t => t.Artist.MusicBrainzId).ToList();
 
             //Loop through each artist
             foreach (var artist in artists)
@@ -202,15 +114,20 @@
                 cancellationToken.ThrowIfCancellationRequested();
 
                 //Report progress
-                double currentProgress = ((double)++progressedArtists / totalArtists) * progressStage;
+                //These progressStage division are here because download the data is probably 3/4 of the time taken to sync per user
+                var currentProgress = ((double)++progressedArtists / totalArtists) * (progressStage / 4) + (progressStage - (progressStage / 4));
                 progress.Report(currentProgress * 100);
 
+                Plugin.Logger.Debug(("Progress Sync: " + currentProgress * 100));
+
                 //Get all the tracks by the current artist
-                var artistMBid = GetMusicBrainzArtistId(artist);
+                var artistMBid = Helpers.GetMusicBrainzArtistId(artist);
                 if (artistMBid == null)
                     continue;
 
+                //Get the tracks from lastfm for the current artist
                 var artistTracks = userLibrary.FirstOrDefault(t => t.Key.Equals(artistMBid));
+
                 if (artistTracks == null || !artistTracks.Any())
                 {
                     Plugin.Logger.Debug("{0} has no tracks in last.fm library for {1}", user.Name, artist.Name);
@@ -222,10 +139,13 @@
                 //Loop through each song
                 foreach (var song in artist.GetRecursiveChildren().OfType<Audio>())
                 {
-                    var matchedSong = artistTracks.FirstOrDefault(t => Utils.StringHelper.IsLike(t.Name, song.Name));
-                    if (matchedSong == null)
-                        continue;
+                    //Find the song in the lastFm library
+                    var matchedSong = artistTracks.FirstOrDefault(t => StringHelper.IsLike(t.Name, song.Name));
 
+                    if (matchedSong == null)
+                        continue; //No match found
+
+                    //We have found a match
                     Plugin.Logger.Debug("Found match for {0}", song.Name);
 
                     var userData = _userDataManager.GetUserData(user.Id, song.GetUserDataKey());
@@ -258,11 +178,11 @@
             }
         }
 
-        private async Task<List<LastfmTrack>> GetUsersLibrary(LastfmUser lastfmUser, CancellationToken cancellationToken)
+        private async Task<List<LastfmTrack>> GetUsersLibrary(LastfmUser lastfmUser, IProgress<double> progress, CancellationToken cancellationToken, double progressStage)
         {
             var tracks     = new List<LastfmTrack>();
-            var moreTracks = true;
             var page       = 1; //Page 0 = 1
+            bool moreTracks;
 
             do
             {
@@ -276,29 +196,14 @@
                 tracks.AddRange(response.Tracks.Tracks);
 
                 moreTracks = !response.Tracks.Metadata.IsLastPage();
-            } while (moreTracks == true);
+
+                //Report progress
+                var currentProgress = ((double)response.Tracks.Metadata.Page / response.Tracks.Metadata.TotalPages) * progressStage;
+                Plugin.Logger.Debug("Progress Downloading: " + currentProgress * 100);
+                progress.Report(currentProgress * 100);
+            } while (moreTracks);
 
             return tracks;
-        }
-
-        //The nuget doesn't seem to have GetProviderId
-        private string GetMusicBrainzArtistId(MusicArtist artist)
-        {
-            if (artist.ProviderIds == null)
-            {
-                Plugin.Logger.Debug("No provider id: {0}", artist.Name);
-                return null;
-            }
-
-            string mbArtistId;
-
-            if (!artist.ProviderIds.TryGetValue("MusicBrainzArtist", out mbArtistId))
-            {
-                Plugin.Logger.Debug("No MBID: {0}", artist.Name);
-                return null;
-            }
-
-            return mbArtistId;
         }
     }
 }

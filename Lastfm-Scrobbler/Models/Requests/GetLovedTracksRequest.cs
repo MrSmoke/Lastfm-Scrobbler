@@ -10,7 +10,7 @@
         {
             return new Dictionary<string, string>(base.ToDictionary()) 
             {
-                { "user", this.User }
+                { "user", User }
             };
         }
     }
