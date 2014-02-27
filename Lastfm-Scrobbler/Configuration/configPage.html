@@ -25,6 +25,8 @@
                         <li>
                             <input type="checkbox" class="chkStandardFilter" name="optionScrobble" id="optionScrobble" data-mini="true"  />
                             <label for="optionScrobble">Enable Scrobbling for this user?</label>
+                            <input type="checkbox" class="chkStandardFilter" name="optionFavourite" id="optionFavourite" data-mini="true"  />
+                            <label for="optionFavourite">Enable syncing of favourites for this user?</label>
                         </li>
                         <li>
                             <button type="submit" data-theme="b">Save</button>
@@ -51,7 +53,8 @@
                     SessionKey:         '',
                     MediaBrowserUserId: '',
                     Options: {
-                        Scrobble: false
+                        Scrobble:       false,
+                        SyncFavourites: false
                     }
                 },
 
@@ -77,7 +80,7 @@
                     }, this));
                 },
 
-                loadConfiguration: function (userId) {
+                loadConfiguration: function () {
                     return ApiClient.getPluginConfiguration(this._pluginUniqueId).done($.proxy(function (config) {
                         this._config = config;
                     }, this));
@@ -111,7 +114,9 @@
 
                     this.$el.find('#username').val(data.Username);
                     this.$el.find('#password').val(data.SessionKey);
-                    this.$el.find('#optionScrobble').prop('checked', data.Options.Scrobble).checkboxradio('refresh');
+                    this.$el.find('#optionScrobble') .prop('checked', data.Options.Scrobble)      .checkboxradio('refresh');
+                    this.$el.find('#optionFavourite').prop('checked', data.Options.SyncFavourites).checkboxradio('refresh');
+                    
                     //Dont forget to call checkboxradio('refresh') otherwise the UI wont update
                 },
 
@@ -184,7 +189,8 @@
                 getUIOptionsValues: function () {
                     var options = $.extend({}, this.configDefaults.Options);
 
-                    options.Scrobble = this.$el.find('#optionScrobble').checked();
+                    options.Scrobble       = this.$el.find('#optionScrobble') .checked();
+                    options.SyncFavourites = this.$el.find('#optionFavourite').checked();
 
                     return options;
                 },
