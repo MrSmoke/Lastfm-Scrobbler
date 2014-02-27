@@ -1,7 +1,7 @@
-﻿using MediaBrowser.Controller.Entities.Audio;
-
-namespace LastfmScrobbler.Utils
+﻿namespace LastfmScrobbler.Utils
 {
+    using MediaBrowser.Controller.Entities.Audio;
+    using Models;
     using Resources;
     using System;
     using System.Collections.Generic;
@@ -85,6 +85,11 @@ namespace LastfmScrobbler.Utils
             Plugin.Logger.Debug("No MBID: {0}", artist.Name);
             
             return null;
+        }
+
+        public static LastfmTrack FindMatchedLastfmSong(List<LastfmTrack> tracks, Audio song)
+        {
+            return tracks.FirstOrDefault(lastfmTrack => StringHelper.IsLike(song.Name, lastfmTrack.Name));
         }
     }
 }

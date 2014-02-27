@@ -77,27 +77,29 @@
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                await SyncDataforUserByArtistBulk(user, progress, cancellationToken, ((double)++usersProcessed / totalUsers));
+                var progressOffset = ((double) usersProcessed++/totalUsers);
+                var maxProgressForStage = ((double) usersProcessed/totalUsers);
+                
+
+                await SyncDataforUserByArtistBulk(user, progress, cancellationToken, maxProgressForStage, progressOffset);
             }
 
             Plugin.Syncing = false;
         }
 
         
-        private async Task SyncDataforUserByArtistBulk(User user, IProgress<double> progress, CancellationToken cancellationToken, double progressStage)
+        private async Task SyncDataforUserByArtistBulk(User user, IProgress<double> progress, CancellationToken cancellationToken, double maxProgress, double progressOffset)
         {
             var artists = user.RootFolder.GetRecursiveChildren().OfType<MusicArtist>().ToList();
 
             var lastFmUser        = UserHelpers.GetUser(user);
-            var totalArtists      = artists.Count;
-            var progressedArtists = 0;
 
             //Get loved tracks
             var lovedTracksReponse = await _apiClient.GetLovedTracks(lastFmUser).ConfigureAwait(false);
             var hasLovedTracks     = lovedTracksReponse.HasLovedTracks();
 
             //Get entire library
-            var usersTracks = await GetUsersLibrary(lastFmUser, progress, cancellationToken, (progressStage - (progressStage / 4)));
+            var usersTracks = await GetUsersLibrary(lastFmUser, progress, cancellationToken, maxProgress, progressOffset);
 
             if (usersTracks.Count == 0)
             {
@@ -112,13 +114,6 @@
             foreach (var artist in artists)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                //Report progress
-                //These progressStage division are here because download the data is probably 3/4 of the time taken to sync per user
-                var currentProgress = ((double)++progressedArtists / totalArtists) * (progressStage / 4) + (progressStage - (progressStage / 4));
-                progress.Report(currentProgress * 100);
-
-                Plugin.Logger.Debug(("Progress Sync: " + currentProgress * 100));
 
                 //Get all the tracks by the current artist
                 var artistMBid = Helpers.GetMusicBrainzArtistId(artist);
@@ -139,14 +134,13 @@
                 //Loop through each song
                 foreach (var song in artist.GetRecursiveChildren().OfType<Audio>())
                 {
-                    //Find the song in the lastFm library
-                    var matchedSong = artistTracks.FirstOrDefault(t => StringHelper.IsLike(t.Name, song.Name));
+                    var matchedSong = Helpers.FindMatchedLastfmSong(artistTracks.ToList(), song);
 
-                    if (matchedSong == null)
-                        continue; //No match found
+                    if(matchedSong == null)
+                        continue;
 
                     //We have found a match
-                    Plugin.Logger.Debug("Found match for {0}", song.Name);
+                    Plugin.Logger.Debug("Found match for {0} = {1}", song.Name, matchedSong.Name);
 
                     var userData = _userDataManager.GetUserData(user.Id, song.GetUserDataKey());
 
@@ -178,7 +172,7 @@
             }
         }
 
-        private async Task<List<LastfmTrack>> GetUsersLibrary(LastfmUser lastfmUser, IProgress<double> progress, CancellationToken cancellationToken, double progressStage)
+        private async Task<List<LastfmTrack>> GetUsersLibrary(LastfmUser lastfmUser, IProgress<double> progress, CancellationToken cancellationToken, double maxProgress, double progressOffset)
         {
             var tracks     = new List<LastfmTrack>();
             var page       = 1; //Page 0 = 1
@@ -197,9 +191,11 @@
 
                 moreTracks = !response.Tracks.Metadata.IsLastPage();
 
-                //Report progress
-                var currentProgress = ((double)response.Tracks.Metadata.Page / response.Tracks.Metadata.TotalPages) * progressStage;
-                Plugin.Logger.Debug("Progress Downloading: " + currentProgress * 100);
+                //Only report progress in download because it will be 90% of the time taken
+                var currentProgress = ((double)response.Tracks.Metadata.Page / response.Tracks.Metadata.TotalPages) * (maxProgress - progressOffset) + progressOffset;
+                
+                Plugin.Logger.Debug("Progress: " + currentProgress * 100);
+                
                 progress.Report(currentProgress * 100);
             } while (moreTracks);
 

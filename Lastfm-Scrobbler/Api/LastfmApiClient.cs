@@ -160,7 +160,7 @@
             return await Get<GetTracksRequest, GetTracksResponse>(request, cancellationToken);
         }
 
-        public async Task<GetTracksResponse> GetTracks(LastfmUser user, CancellationToken cancellationToken, int page = 0, int limit = 400)
+        public async Task<GetTracksResponse> GetTracks(LastfmUser user, CancellationToken cancellationToken, int page = 0, int limit = 200)
         {
             var request = new GetTracksRequest
             {
