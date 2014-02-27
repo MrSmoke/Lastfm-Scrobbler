@@ -19,8 +19,6 @@
 
         public async Task<MobileSessionResponse> RequestSession(string username, string password)
         {
-            Plugin.Logger.Debug("Requesting session key");
-
             //Build request object
             var request = new MobileSessionRequest
             {

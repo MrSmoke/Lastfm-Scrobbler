@@ -49,7 +49,7 @@
         {
             return new ITaskTrigger[]
             {
-                new WeeklyTrigger { DayOfWeek = DayOfWeek.Sunday, TimeOfDay = TimeSpan.FromHours(3) }
+                //new WeeklyTrigger { DayOfWeek = DayOfWeek.Sunday, TimeOfDay = TimeSpan.FromHours(3) }
             };
         }
 
@@ -90,9 +90,11 @@
         
         private async Task SyncDataforUserByArtistBulk(User user, IProgress<double> progress, CancellationToken cancellationToken, double maxProgress, double progressOffset)
         {
-            var artists = user.RootFolder.GetRecursiveChildren().OfType<MusicArtist>().ToList();
+            var artists    = user.RootFolder.GetRecursiveChildren().OfType<MusicArtist>().ToList();
+            var lastFmUser = UserHelpers.GetUser(user);
 
-            var lastFmUser        = UserHelpers.GetUser(user);
+            var totalSongs   = 0;
+            var matchedSongs = 0;
 
             //Get loved tracks
             var lovedTracksReponse = await _apiClient.GetLovedTracks(lastFmUser).ConfigureAwait(false);
@@ -103,7 +105,7 @@
 
             if (usersTracks.Count == 0)
             {
-                Plugin.Logger.Debug("User {0} has no tracks in last.fm", user.Name);
+                Plugin.Logger.Info("User {0} has no tracks in last.fm", user.Name);
                 return;
             }
 
@@ -117,6 +119,7 @@
 
                 //Get all the tracks by the current artist
                 var artistMBid = Helpers.GetMusicBrainzArtistId(artist);
+
                 if (artistMBid == null)
                     continue;
 
@@ -125,21 +128,27 @@
 
                 if (artistTracks == null || !artistTracks.Any())
                 {
-                    Plugin.Logger.Debug("{0} has no tracks in last.fm library for {1}", user.Name, artist.Name);
+                    Plugin.Logger.Info("{0} has no tracks in last.fm library for {1}", user.Name, artist.Name);
                     continue;
                 }
 
-                Plugin.Logger.Debug("Found {0} tracks in last.fm library for {1}", artistTracks.Count(), artist.Name);
+                var artistTracksList = artistTracks.ToList();
+
+                Plugin.Logger.Info("Found {0} tracks in last.fm library for {1}", artistTracksList.Count, artist.Name);
 
                 //Loop through each song
                 foreach (var song in artist.GetRecursiveChildren().OfType<Audio>())
                 {
-                    var matchedSong = Helpers.FindMatchedLastfmSong(artistTracks.ToList(), song);
+                    totalSongs++;
+
+                    var matchedSong = Helpers.FindMatchedLastfmSong(artistTracksList, song);
 
                     if(matchedSong == null)
                         continue;
 
                     //We have found a match
+                    matchedSongs++;
+
                     Plugin.Logger.Debug("Found match for {0} = {1}", song.Name, matchedSong.Name);
 
                     var userData = _userDataManager.GetUserData(user.Id, song.GetUserDataKey());
@@ -147,7 +156,12 @@
                     //Check if its a favourite track
                     if (hasLovedTracks && lastFmUser.Options.SyncFavourites)
                     {
-                        var favourited = lovedTracksReponse.LovedTracks.Tracks.Any(t => t.MusicBrainzId.Equals(matchedSong.MusicBrainzId));
+                        //Use MBID if set otherwise match on song name
+                        var favourited = lovedTracksReponse.LovedTracks.Tracks.Any(
+                            t =>  String.IsNullOrWhiteSpace(t.MusicBrainzId) 
+                                ? StringHelper.IsLike(t.Name, matchedSong.Name) 
+                                : t.MusicBrainzId.Equals(matchedSong.MusicBrainzId)
+                        );
 
                         userData.IsFavorite = favourited;
 
@@ -170,6 +184,9 @@
                     await _userDataManager.SaveUserData(user.Id, song, userData, UserDataSaveReason.UpdateUserRating, cancellationToken);
                 }
             }
+
+            Plugin.Logger.Info("Finished import Last.fm library for {0}. Local Songs: {1} | Last.fm Songs: {2} | Matched Songs: {3} | {4}% match rate",
+                user.Name, totalSongs, usersTracks.Count, matchedSongs, Math.Round(((double)matchedSongs / usersTracks.Count) * 100));
         }
 
         private async Task<List<LastfmTrack>> GetUsersLibrary(LastfmUser lastfmUser, IProgress<double> progress, CancellationToken cancellationToken, double maxProgress, double progressOffset)
