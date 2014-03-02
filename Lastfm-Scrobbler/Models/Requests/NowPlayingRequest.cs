@@ -6,21 +6,18 @@
     [DataContract]
     public class NowPlayingRequest : BaseAuthedRequest
     {
-        [DataMember(Name = "track")]
-        public string Track { get; set; }
-
-        [DataMember(Name = "artist")]
-        public string Artist { get; set; }
-
-        [DataMember(Name = "duration")]
-        public int Duration { get; set; }
+        public string Track    { get; set; }
+        public string Album    { get; set; }
+        public string Artist   { get; set; }
+        public int    Duration { get; set; }
 
         public override Dictionary<string, string> ToDictionary()
         {
             return new Dictionary<string, string>(base.ToDictionary()) 
             {   
-                { "track",    Track               },
-                { "artist",   Artist              },
+                { "track",    Track  },
+                { "album",    Album  },
+                { "artist",   Artist },
                 { "duration", Duration.ToString() }
             };
         }

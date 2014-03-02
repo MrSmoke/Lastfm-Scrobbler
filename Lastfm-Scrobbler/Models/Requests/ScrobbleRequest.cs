@@ -6,20 +6,17 @@
     [DataContract]
     public class ScrobbleRequest : BaseAuthedRequest
     {
-        [DataMember(Name="track")]
-        public string Track { get; set; }
-
-        [DataMember(Name="artist")]
-        public string Artist { get; set; }
-
-        [DataMember(Name="timestamp")]
-        public int Timestamp { get; set; }
+        public string Track     { get; set; }
+        public string Album     { get; set; }
+        public string Artist    { get; set; }
+        public int    Timestamp { get; set; }
 
         public override Dictionary<string, string> ToDictionary()
         {
             return new Dictionary<string, string>(base.ToDictionary()) 
             {
                 { "track",     Track },
+                { "album",     Album },
                 { "artist",    Artist },
                 { "timestamp", Timestamp.ToString() }
             };

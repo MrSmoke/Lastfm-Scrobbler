@@ -43,8 +43,9 @@
         {
             var request = new ScrobbleRequest
             {
-                Artist     = item.Artists.First(),
                 Track      = item.Name,
+                Album      = item.Album,
+                Artist     = item.Artists.First(),
                 Timestamp  = Helpers.CurrentTimestamp(),
 
                 ApiKey     = Strings.Keys.LastfmApiKey,
@@ -56,7 +57,7 @@
 
             if (response != null)
             {
-                Plugin.Logger.Info("{0} played '{1}'", user.Username, item.Name);
+                Plugin.Logger.Info("{0} played '{1}' - {2} - {3}", user.Username, request.Track, request.Album, request.Artist);
                 return;
             }
 
@@ -67,8 +68,9 @@
         {
             var request = new NowPlayingRequest
             {
-                Artist   = item.Artists.First(),
-                Track    = item.Name,
+                Track  = item.Name,
+                Album  = item.Album,
+                Artist = item.Artists.First(),
 
                 ApiKey = Strings.Keys.LastfmApiKey,
                 Method = Strings.Methods.NowPlaying,
@@ -82,7 +84,7 @@
             var response = await Post<NowPlayingRequest, ScrobbleResponse>(request);
             if (response != null)
             {
-                Plugin.Logger.Info("{0} is now playing '{1}'", user.Username, item.Name);
+                Plugin.Logger.Info("{0} is now playing '{1}' - {2} - {3}", user.Username, request.Track, request.Album, request.Artist);
                 return;
             }
 
