@@ -7,6 +7,7 @@
     using Resources;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Utils;
@@ -44,7 +45,7 @@
                 ResourcePool          = Plugin.LastfmResourcePool,
                 CancellationToken     = CancellationToken.None,
                 EnableHttpCompression = false,
-            }, data))
+            }, EscapeDictionary(data)))
             {
                 try
                 {
@@ -102,11 +103,11 @@
         #region Private methods
         private static string BuildGetUrl(Dictionary<string, string> requestData)
         {
-            return String.Format("http://{0}/{1}/?format=json&{2}",
+            return Uri.EscapeDataString(String.Format("http://{0}/{1}/?format=json&{2}",
                                     Strings.Endpoints.LastfmApi,
                                     ApiVersion,
                                     Helpers.DictionaryToQueryString(requestData)
-                                );
+                                ));
         }
 
         private static string BuildPostUrl(bool secure = false)
@@ -116,6 +117,11 @@
                                     Strings.Endpoints.LastfmApi,
                                     ApiVersion
                                 );
+        }
+
+        private Dictionary<string, string> EscapeDictionary(Dictionary<string, string> dic)
+        {
+            return dic.ToDictionary(item => item.Key, item => Uri.EscapeDataString(item.Value));
         }
         #endregion
     }
