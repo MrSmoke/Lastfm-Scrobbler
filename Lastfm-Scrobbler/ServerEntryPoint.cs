@@ -92,7 +92,7 @@
         /// Let last.fm know when a track has finished.
         /// Playback stopped is run when a track is finished.
         /// </summary>
-        private async void PlaybackStopped(object sender, PlaybackStopEventArgs e)
+        private void PlaybackStopped(object sender, PlaybackStopEventArgs e)
         {
             //We only care about audio
             if (!(e.Item is Audio))
@@ -122,17 +122,24 @@
                 return;
             }
 
-            var lastfmUser = Utils.UserHelpers.GetUser(e.Users.First());
+            var user = e.Users.FirstOrDefault();
+            if (user == null)
+            {
+                Plugin.Logger.Debug("No user");
+                return;
+            }
+
+            var lastfmUser = Utils.UserHelpers.GetUser(user);
             if (lastfmUser == null)
             {
-                Plugin.Logger.Debug("Could not find user");
+                Plugin.Logger.Debug("Could not find last.fm user");
                 return;
             }
 
             //User doesn't want to scrobble
             if (!lastfmUser.Options.Scrobble)
             {
-                Plugin.Logger.Debug("{0} ({1}) does not want to scrobble", e.Users.FirstOrDefault().Name, lastfmUser.Username);
+                Plugin.Logger.Debug("{0} ({1}) does not want to scrobble", user.Name, lastfmUser.Username);
                 return;
             }
 
@@ -148,23 +155,30 @@
         /// <summary>
         /// Let Last.fm know when a user has started listening to a track
         /// </summary>
-        private async void PlaybackStart(object sender, PlaybackProgressEventArgs e)
+        private void PlaybackStart(object sender, PlaybackProgressEventArgs e)
         {
             //We only care about audio
             if (!(e.Item is Audio))
                 return;
 
-            var lastfmUser = Utils.UserHelpers.GetUser(e.Users.First());
+            var user = e.Users.FirstOrDefault();
+            if (user == null)
+            {
+                Plugin.Logger.Debug("No user");
+                return;
+            }
+
+            var lastfmUser = Utils.UserHelpers.GetUser(user);
             if (lastfmUser == null)
             {
-                Plugin.Logger.Debug("Could not find user");
+                Plugin.Logger.Debug("Could not find last.fm user");
                 return;
             }
 
             //User doesn't want to scrobble
             if (!lastfmUser.Options.Scrobble)
             {
-                Plugin.Logger.Debug("{0} ({1}) does not want to scrobble", e.Users.FirstOrDefault().Name, lastfmUser.Username);
+                Plugin.Logger.Debug("{0} ({1}) does not want to scrobble", user.Name, lastfmUser.Username);
                 return;
             }
 

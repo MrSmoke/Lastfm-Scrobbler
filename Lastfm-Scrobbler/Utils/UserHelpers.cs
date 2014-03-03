@@ -9,6 +9,9 @@
     {
         public static LastfmUser GetUser(User user)
         {
+            if (user == null)
+                return null;
+
             if (Plugin.Instance.PluginConfiguration.LastfmUsers == null)
                 return null;
 
