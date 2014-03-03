@@ -40,7 +40,7 @@
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "LastfmScrobbler"; }
+            get { return "Last.fm Scrobbler"; }
         }
 
         /// <summary>
@@ -51,7 +51,7 @@
         {
             get
             {
-                return "LastfmScrobbler for your collection.";
+                return "Scrobble your music collection to Last.fm";
             }
         }
 
@@ -73,6 +73,5 @@
 
             ServerEntryPoint.Instance.OnConfigurationUpdated(oldConfig, (PluginConfiguration)configuration);
         }
-
     }
 }
