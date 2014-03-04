@@ -87,14 +87,14 @@
             Plugin.Syncing = false;
         }
 
-        
         private async Task SyncDataforUserByArtistBulk(User user, IProgress<double> progress, CancellationToken cancellationToken, double maxProgress, double progressOffset)
         {
             var artists    = user.RootFolder.GetRecursiveChildren().OfType<MusicArtist>().ToList();
             var lastFmUser = UserHelpers.GetUser(user);
 
-            var totalSongs   = 0;
-            var matchedSongs = 0;
+            var totalSongs      = 0;
+            var matchedSongs    = 0;
+            var unMatchedAlbums = 0;
 
             //Get loved tracks
             var lovedTracksReponse = await _apiClient.GetLovedTracks(lastFmUser).ConfigureAwait(false);
@@ -146,11 +146,11 @@
                     if(matchedSong == null)
                         continue;
 
-                    //We have found a match
-                    matchedSongs++;
-
                     Plugin.Logger.Debug("Found match for {0} = {1}", song.Name, matchedSong.Name);
 
+                    //
+                    //
+                    // Below we will mark all instances of this track as favourite because we do not know what album is it part of
                     var userData = _userDataManager.GetUserData(user.Id, song.GetUserDataKey());
 
                     //Check if its a favourite track
@@ -168,17 +168,33 @@
                         Plugin.Logger.Debug("{0} Favourite: {1}", song.Name, favourited);
                     }
 
-                    //Update the play count
-                    if (matchedSong.PlayCount > 0)
+                    //
+                    //
+                    // Before setting the play count, we will ensure that the track is from the same album
+                    if (StringHelper.IsLike(matchedSong.Album.Name, song.Album))
                     {
-                        userData.Played = true;
-                        userData.PlayCount = Math.Max(userData.PlayCount, matchedSong.PlayCount);
+                        //We have found a match
+                        matchedSongs++;
+
+                        Plugin.Logger.Info("Matched album: {0} = {1}", song.Album, matchedSong.Album.Name);
+
+                        //Update the play count
+                        if (matchedSong.PlayCount > 0)
+                        {
+                            userData.Played = true;
+                            userData.PlayCount = Math.Max(userData.PlayCount, matchedSong.PlayCount);
+                        }
+                        else
+                        {
+                            userData.Played = false;
+                            userData.PlayCount = 0;
+                            userData.LastPlayedDate = null;
+                        }
                     }
                     else
                     {
-                        userData.Played = false;
-                        userData.PlayCount = 0;
-                        userData.LastPlayedDate = null;
+                        Plugin.Logger.Info("No Matched album: {0} != {1}", song.Album, matchedSong.Album.Name);
+                        unMatchedAlbums++;
                     }
 
                     await _userDataManager.SaveUserData(user.Id, song, userData, UserDataSaveReason.UpdateUserRating, cancellationToken);
@@ -186,8 +202,8 @@
             }
 
             //The percentage might not actually be correct but I'm pretty tired and don't want to think about it
-            Plugin.Logger.Info("Finished import Last.fm library for {0}. Local Songs: {1} | Last.fm Songs: {2} | Matched Songs: {3} | {4}% match rate",
-                user.Name, totalSongs, usersTracks.Count, matchedSongs, Math.Round(((double)matchedSongs / Math.Min(usersTracks.Count, totalSongs)) * 100));
+            Plugin.Logger.Info("Finished import Last.fm library for {0}. Local Songs: {1} | Last.fm Songs: {2} | Matched Songs: {3} | Unmatched Song Albums: {4} | {5}% match rate",
+                user.Name, totalSongs, usersTracks.Count, matchedSongs, unMatchedAlbums, Math.Round(((double)matchedSongs / Math.Min(usersTracks.Count, totalSongs)) * 100));
         }
 
         private async Task<List<LastfmTrack>> GetUsersLibrary(LastfmUser lastfmUser, IProgress<double> progress, CancellationToken cancellationToken, double maxProgress, double progressOffset)

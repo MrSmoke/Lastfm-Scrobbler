@@ -25,6 +25,13 @@
         public string MusicBrainzId { get; set; }
     }
 
+    [DataContract]
+    public class LastfmAlbum
+    {
+        [DataMember(Name = "name")]
+        public string Name { get; set; }
+    }
+
     public class LastfmLovedTrack : BaseLastfmTrack
     {
     }
@@ -32,6 +39,9 @@
     [DataContract]
     public class LastfmTrack : BaseLastfmTrack
     {
+        [DataMember(Name = "album")]
+        public LastfmAlbum Album { get; set; }
+        
         [DataMember(Name="playcount")]
         public int PlayCount { get; set; }
     }
