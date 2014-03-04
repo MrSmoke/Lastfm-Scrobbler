@@ -30,10 +30,10 @@
                         </li>
                         <li>
                             <button type="submit" data-theme="b">Save</button>
+                            <button id="removeUser">Delete users configuration</button>
                             <button type="button" onclick="history.back();">Cancel</button>
                         </li>
                     </ul>
-
                 </form>
             </div>
         </div>
@@ -67,6 +67,7 @@
 
                     this.$el.find('#LastfmScrobblerConfigurationForm').on('submit', this, this.onSubmit);
                     this.$el.find('#user').on('change', this, $.proxy(this.onUserChange, this));
+                    this.$el.find("#removeUser").on('click', $.proxy(this.removeUser, this));
 
                     var loadConfig = this.loadConfiguration();
                     var loadUsers  = this.loadUsers().done($.proxy(this.buildUserList, this));
@@ -165,9 +166,11 @@
                 },
 
                 doSave: function () {
-                    return this.saveConfiguration().done(function (result) {
+                    return this.saveConfiguration().done($.proxy(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
-                    });
+
+                        this.onUserChange();
+                    }, this));
                 },
 
                 getCurrentSelectedUserId: function () {
@@ -180,6 +183,17 @@
 
                     var currentUser = this._config.LastfmUsers.filter(function (user) {
                         return user.MediaBrowserUserId == currentUserId;
+                    })[0];
+
+                    return currentUser;
+                },
+
+                getSelectedMBUser: function() {
+                    //Get the current user
+                    var currentUserId = this.getCurrentSelectedUserId();
+
+                    var currentUser = this._users.filter(function (user) {
+                        return user.Id == currentUserId;
                     })[0];
 
                     return currentUser;
@@ -213,6 +227,38 @@
                     self.loadConfiguration().done(function () {
                         self.save(username, password);
                     });
+                },
+
+                removeUser: function (e) {
+                    e.preventDefault();
+
+                    var _this = this,
+                        currentUserId = this.getCurrentSelectedUserId(),
+                        selectedMBUser = this.getSelectedMBUser();
+
+                    if (!currentUserId || !selectedMBUser) {
+                        Dashboard.showError("Please select a user");
+                        return;
+                    }
+
+                    if (!confirm("Are you sure you want to remove the last.fm configuration for " + selectedMBUser.Name + "?")) return;
+
+                    Dashboard.showLoadingMsg();
+
+                    this.loadConfiguration().done($.proxy(function () {
+
+                        //Remove the config for the current user
+                        this._config.LastfmUsers = $.grep(this._config.LastfmUsers, function(user) {
+                            return user.MediaBrowserUserId != currentUserId;
+                        });
+
+                        //Save the result
+                        this.saveConfiguration().done(function () {
+                            Dashboard.processPluginConfigurationUpdateResult();
+
+                            _this.onUserChange();
+                        });
+                    }, this));
                 }
             };
 
