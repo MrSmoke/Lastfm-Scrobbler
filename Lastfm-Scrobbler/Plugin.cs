@@ -38,22 +38,13 @@
         /// Gets the name of the plugin
         /// </summary>
         /// <value>The name.</value>
-        public override string Name
-        {
-            get { return "Last.fm Scrobbler"; }
-        }
+        public override string Name => "Last.fm Scrobbler";
 
         /// <summary>
         /// Gets the description.
         /// </summary>
         /// <value>The description.</value>
-        public override string Description
-        {
-            get
-            {
-                return "Scrobble your music collection to Last.fm";
-            }
-        }
+        public override string Description => "Scrobble your music collection to Last.fm";
 
         /// <summary>
         /// Gets the instance.

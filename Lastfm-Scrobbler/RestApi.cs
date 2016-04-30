@@ -7,7 +7,7 @@
     using ServiceStack;
 
     [Route("/Lastfm/Login", "POST")]
-    [Api(("Calls Last.fm's getMobileSession to get a Last.fm session key"))]
+    [Api("Calls Last.fm's getMobileSession to get a Last.fm session key")]
     public class Login
     {
         public string Username { get; set; }

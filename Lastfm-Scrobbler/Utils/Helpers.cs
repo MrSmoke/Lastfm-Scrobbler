@@ -22,7 +22,7 @@
             // Convert the byte array to hexadecimal string
             var sb = new StringBuilder();
             
-            foreach (byte b in hashBytes)
+            foreach (var b in hashBytes)
                 sb.Append(b.ToString("X2"));
 
             return sb.ToString();
@@ -52,7 +52,9 @@
 
         public static string DictionaryToQueryString(Dictionary<string, string> data)
         {
-            return String.Join("&", data.Where(k => !String.IsNullOrWhiteSpace(k.Value)).Select(kvp => String.Format("{0}={1}", Uri.EscapeUriString(kvp.Key), Uri.EscapeUriString(kvp.Value))));
+            return string.Join("&",
+                data.Where(k => !string.IsNullOrWhiteSpace(k.Value)).Select(kvp =>
+                    $"{Uri.EscapeUriString(kvp.Key)}={Uri.EscapeUriString(kvp.Value)}"));
         }
 
         private static string CreateSignature(Dictionary<string, string> data)
@@ -60,7 +62,7 @@
             var s = new StringBuilder();
 
             foreach (var item in data.OrderBy(x => x.Key))
-                s.Append(String.Format("{0}{1}", item.Key, item.Value));
+                s.Append($"{item.Key}{item.Value}");
 
             //Append seceret
             s.Append(Strings.Keys.LastfmApiSeceret);
