@@ -23,13 +23,9 @@
         //Global logging instance
         public static ILogger Logger { get; set; }
 
-        public PluginConfiguration PluginConfiguration
-        {
-            get { return Configuration; }
-        }
+        public PluginConfiguration PluginConfiguration => Configuration;
 
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
-            : base(applicationPaths, xmlSerializer)
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer) : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
         }

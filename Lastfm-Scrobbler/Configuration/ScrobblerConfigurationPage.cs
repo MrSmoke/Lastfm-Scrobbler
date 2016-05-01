@@ -7,16 +7,13 @@
     /// <summary>
     /// Class MyConfigurationPage
     /// </summary>
-    class ScrobblerConfigurationPage : IPluginConfigurationPage
+    internal class ScrobblerConfigurationPage : IPluginConfigurationPage
     {
         /// <summary>
         /// Gets My Option.
         /// </summary>
         /// <value>The Option.</value>
-        public string Name
-        {
-            get { return "Last.fm Scrobbler"; }
-        }
+        public string Name => "Last.fm Scrobbler";
 
         /// <summary>
         /// Gets the HTML stream.
@@ -31,14 +28,8 @@
         /// Gets the type of the configuration page.
         /// </summary>
         /// <value>The type of the configuration page.</value>
-        public ConfigurationPageType ConfigurationPageType
-        {
-            get { return ConfigurationPageType.PluginConfiguration; }
-        }
+        public ConfigurationPageType ConfigurationPageType => ConfigurationPageType.PluginConfiguration;
 
-        public IPlugin Plugin
-        {
-            get { return LastfmScrobbler.Plugin.Instance; }
-        }
+        public IPlugin Plugin => LastfmScrobbler.Plugin.Instance;
     }
 }

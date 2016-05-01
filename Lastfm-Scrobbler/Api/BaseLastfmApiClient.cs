@@ -103,23 +103,15 @@
         #region Private methods
         private static string BuildGetUrl(Dictionary<string, string> requestData)
         {
-            return String.Format("http://{0}/{1}/?format=json&{2}",
-                                    Strings.Endpoints.LastfmApi,
-                                    ApiVersion,
-                                    Helpers.DictionaryToQueryString(requestData)
-                                );
+            return $"http://{Strings.Endpoints.LastfmApi}/{ApiVersion}/?format=json&{Helpers.DictionaryToQueryString(requestData)}";
         }
 
         private static string BuildPostUrl(bool secure = false)
         {
-            return String.Format("{0}://{1}/{2}/?format=json",
-                                    secure ? "https" : "http",
-                                    Strings.Endpoints.LastfmApi,
-                                    ApiVersion
-                                );
+            return $"{(secure ? "https" : "http")}://{Strings.Endpoints.LastfmApi}/{ApiVersion}/?format=json";
         }
 
-        private Dictionary<string, string> EscapeDictionary(Dictionary<string, string> dic)
+        private static Dictionary<string, string> EscapeDictionary(Dictionary<string, string> dic)
         {
             return dic.ToDictionary(item => item.Key, item => Uri.EscapeDataString(item.Value));
         }

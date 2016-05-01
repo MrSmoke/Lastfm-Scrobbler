@@ -16,7 +16,7 @@
     using System.Threading.Tasks;
     using Utils;
 
-    class ImportLastfmData : IScheduledTask
+    internal class ImportLastfmData : IScheduledTask
     {
         private readonly IUserManager     _userManager;
         private readonly LastfmApiClient  _apiClient;
@@ -30,20 +30,11 @@
             _apiClient = new LastfmApiClient(httpClient, jsonSerializer);
         }
 
-        public string Name
-        {
-            get { return "Import Last.fm Data"; }
-        }
+        public string Name => "Import Last.fm Data";
 
-        public string Category
-        {
-            get { return "Last.fm"; }
-        }
+        public string Category => "Last.fm";
 
-        public string Description
-        {
-            get { return "Import play counts and favourite tracks for each user with Last.fm accounted configured"; }
-        }
+        public string Description => "Import play counts and favourite tracks for each user with Last.fm accounted configured";
 
         public IEnumerable<ITaskTrigger> GetDefaultTriggers()
         {
@@ -59,7 +50,7 @@
             var users = _userManager.Users.Where(u => {
                 var user = UserHelpers.GetUser(u);
                 
-                return user != null && !String.IsNullOrWhiteSpace(user.SessionKey);
+                return !string.IsNullOrWhiteSpace(user?.SessionKey);
             }).ToList();
 
             if (users.Count == 0)
@@ -158,7 +149,7 @@
                     {
                         //Use MBID if set otherwise match on song name
                         var favourited = lovedTracksReponse.LovedTracks.Tracks.Any(
-                            t =>  String.IsNullOrWhiteSpace(t.MusicBrainzId) 
+                            t =>  string.IsNullOrWhiteSpace(t.MusicBrainzId) 
                                 ? StringHelper.IsLike(t.Name, matchedSong.Name) 
                                 : t.MusicBrainzId.Equals(matchedSong.MusicBrainzId)
                         );

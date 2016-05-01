@@ -84,7 +84,7 @@
             if (Plugin.Syncing)
                 return;
 
-            _apiClient.LoveTrack(item, lastfmUser, e.UserData.IsFavorite);
+            _apiClient.LoveTrack(item, lastfmUser, e.UserData.IsFavorite).Wait();
         }
 
 
@@ -149,7 +149,7 @@
                 return;
             }
 
-            _apiClient.Scrobble(item, lastfmUser);
+            _apiClient.Scrobble(item, lastfmUser).Wait();
         }
 
         /// <summary>
@@ -188,8 +188,8 @@
                 return;
             }
 
-            var item = e.Item as Audio;
-            _apiClient.NowPlaying(item, lastfmUser);
+            var item = (Audio) e.Item;
+            _apiClient.NowPlaying(item, lastfmUser).Wait();
         }
 
         /// <summary>
