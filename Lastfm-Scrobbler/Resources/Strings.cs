@@ -20,8 +20,8 @@
 
         public static class Keys
         {
-            public static string LastfmApiKey     = "cb3bdcd415fcb40cd572b137b2b255f5";
-            public static string LastfmApiSeceret = "3a08f9fad6ddc4c35b0dce0062cecb5e";
+            public static string LastfmApiKey     = "e85c2d4e649f4a01dbfec778d758ab2e";
+            public static string LastfmApiSeceret = "c7c59e71ebd0da786b6fd7059bcced2b";
         }
     }
 }
