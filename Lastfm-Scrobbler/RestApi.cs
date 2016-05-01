@@ -1,17 +1,16 @@
 ﻿namespace LastfmScrobbler
 {
+    using System.Threading.Tasks;
     using Api;
     using MediaBrowser.Common.Net;
     using MediaBrowser.Controller.Net;
     using MediaBrowser.Model.Serialization;
     using ServiceStack;
 
-    [Route("/Lastfm/Login", "POST")]
-    [Api("Calls Last.fm's getMobileSession to get a Last.fm session key")]
-    public class Login
+    [Route("/LastFm/callback")]
+    public class Callback
     {
-        public string Username { get; set; }
-        public string Password { get; set; }
+        public string Token { get; set; }
     }
 
     public class RestApi : IRestfulService
@@ -23,9 +22,11 @@
             _apiClient = new LastfmApiClient(httpClient, jsonSerializer);
         }
 
-        public object Post(Login request)
+        public string Get(Callback callback)
         {
-            return _apiClient.RequestSession(request.Username, request.Password);
+            Plugin.Logger.Debug(callback.Token);
+
+            return callback.Token;
         }
     }
 }

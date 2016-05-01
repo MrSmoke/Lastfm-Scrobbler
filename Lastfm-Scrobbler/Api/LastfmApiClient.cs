@@ -17,24 +17,39 @@
     {
         public LastfmApiClient(IHttpClient httpClient, IJsonSerializer jsonSerializer) : base(httpClient, jsonSerializer) { }
 
-        public async Task<MobileSessionResponse> RequestSession(string username, string password)
+        public async Task<string> RequestToken()
+        {
+            var request = new GetTokenRequest
+            {
+                ApiKey = Strings.Keys.LastfmApiKey,
+                Secure = true
+            };
+
+            var response =await  Get<GetTokenRequest, AuthenticationTokenResponse>(request);
+
+            if (response.IsError())
+                return null;
+
+            return response.Token;
+        }
+
+        public async Task<SessionResponse> RequestSession(string token)
         {
             //Build request object
-            var request = new MobileSessionRequest
+            var request = new SessionRequest
             {
-                Username = username,
-                Password = password,
+                Token = token,
 
                 ApiKey   = Strings.Keys.LastfmApiKey,
                 Method   = Strings.Methods.GetMobileSession,
                 Secure   = true
             };
 
-            var response = await Post<MobileSessionRequest, MobileSessionResponse>(request);
+            var response = await Post<SessionRequest, SessionResponse>(request);
 
             //Log the key for debugging
-            if (response != null)
-                Plugin.Logger.Info("{0} successfully logged into Last.fm", username);
+            if (response == null)
+                Plugin.Logger.Info("{0} failed to login into Last.fm");
 
             return response;
         }
