@@ -113,14 +113,14 @@
             //Send the request
             var response = await Post<TrackLoveRequest, BaseResponse>(request);
 
-            if (response != null && !response.IsError())
+            if (response == null || response.IsError())
             {
-                Plugin.Logger.Info("{0} {2}loved track '{1}'", user.Username, item.Name, (love ? "" : "un"));
-                return true;
+                Plugin.Logger.Error("{0} Failed to love = {3} track '{1}' - {2}", user.Username, item.Name, response?.Message ?? "empty response", love);
+                return false;
             }
 
-            Plugin.Logger.Error("{0} Failed to love = {3} track '{1}' - {2}", user.Username, item.Name, response.Message, love);
-            return false;
+            Plugin.Logger.Info("{0} {2}loved track '{1}'", user.Username, item.Name, love ? "" : "un");
+            return true;
         }
 
         /// <summary>

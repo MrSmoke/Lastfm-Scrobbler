@@ -19,14 +19,14 @@
 
             // Convert the byte array to hexadecimal string
             var sb = new StringBuilder();
-            
+
             foreach (var b in hashBytes)
                 sb.Append(b.ToString("X2"));
 
             return sb.ToString();
         }
 
-        public static void AppendSignature(ref Dictionary<string, string> data)
+        public static void AppendSignature(Dictionary<string, string> data)
         {
             data.Add("api_sig", CreateSignature(data));
         }

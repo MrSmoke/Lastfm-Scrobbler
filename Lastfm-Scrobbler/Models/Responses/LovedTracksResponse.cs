@@ -11,7 +11,7 @@
 
         public bool HasLovedTracks()
         {
-            return LovedTracks != null && LovedTracks.Tracks != null && LovedTracks.Tracks.Count > 0;
+            return LovedTracks?.Tracks != null && LovedTracks.Tracks.Count > 0;
         }
     }
 
