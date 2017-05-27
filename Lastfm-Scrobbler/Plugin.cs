@@ -17,7 +17,7 @@
         /// Flag set when an Import Syncing task is running
         /// </summary>
         public static bool Syncing { get; internal set; }
-        
+
         internal static readonly SemaphoreSlim LastfmResourcePool = new SemaphoreSlim(4, 4);
 
         //Global logging instance

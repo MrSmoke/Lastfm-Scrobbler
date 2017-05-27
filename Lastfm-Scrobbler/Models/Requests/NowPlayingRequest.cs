@@ -13,8 +13,8 @@
 
         public override Dictionary<string, string> ToDictionary()
         {
-            return new Dictionary<string, string>(base.ToDictionary()) 
-            {   
+            return new Dictionary<string, string>(base.ToDictionary())
+            {
                 { "track",    Track  },
                 { "album",    Album  },
                 { "artist",   Artist },

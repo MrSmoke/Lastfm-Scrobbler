@@ -1,11 +1,10 @@
 ﻿namespace LastfmScrobbler
 {
-    using System.Threading.Tasks;
+    using System;
     using Api;
     using MediaBrowser.Common.Net;
-    using MediaBrowser.Controller.Net;
     using MediaBrowser.Model.Serialization;
-    using ServiceStack;
+    using MediaBrowser.Model.Services;
 
     [Route("/LastFm/callback")]
     public class Callback
@@ -13,7 +12,7 @@
         public string Token { get; set; }
     }
 
-    public class RestApi : IRestfulService
+    public class RestApi : IService, IDisposable
     {
         private readonly LastfmApiClient _apiClient;
 
@@ -27,6 +26,11 @@
             Plugin.Logger.Debug(callback.Token);
 
             return callback.Token;
+        }
+
+        public void Dispose()
+        {
+            _apiClient?.Dispose();
         }
     }
 }

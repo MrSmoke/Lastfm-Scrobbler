@@ -1,7 +1,5 @@
 ﻿namespace LastfmScrobbler.Utils
 {
-    using MediaBrowser.Controller.Entities.Audio;
-    using Models;
     using Resources;
     using System;
     using System.Collections.Generic;
@@ -21,14 +19,14 @@
 
             // Convert the byte array to hexadecimal string
             var sb = new StringBuilder();
-            
+
             foreach (var b in hashBytes)
                 sb.Append(b.ToString("X2"));
 
             return sb.ToString();
         }
 
-        public static void AppendSignature(ref Dictionary<string, string> data)
+        public static void AppendSignature(Dictionary<string, string> data)
         {
             data.Add("api_sig", CreateSignature(data));
         }
@@ -36,13 +34,6 @@
         public static int ToTimestamp(DateTime date)
         {
             return Convert.ToInt32((date - new DateTime(1970, 1, 1).ToLocalTime()).TotalSeconds);
-        }
-
-        public static DateTime FromTimestamp(double timestamp)
-        {
-            var date = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-
-            return date.AddSeconds(timestamp).ToLocalTime();
         }
 
         public static int CurrentTimestamp()
@@ -68,30 +59,6 @@
             s.Append(Strings.Keys.LastfmApiSeceret);
 
             return CreateMd5Hash(s.ToString());
-        }
-
-        //The nuget doesn't seem to have GetProviderId for artists
-        public static string GetMusicBrainzArtistId(MusicArtist artist)
-        {
-            string mbArtistId;
-            
-            if (artist.ProviderIds == null)
-            {
-                Plugin.Logger.Debug("No provider id: {0}", artist.Name);
-                return null;
-            }
-
-            if (artist.ProviderIds.TryGetValue("MusicBrainzArtist", out mbArtistId)) 
-                return mbArtistId;
-
-            Plugin.Logger.Debug("No MBID: {0}", artist.Name);
-            
-            return null;
-        }
-
-        public static LastfmTrack FindMatchedLastfmSong(List<LastfmTrack> tracks, Audio song)
-        {
-            return tracks.FirstOrDefault(lastfmTrack => StringHelper.IsLike(song.Name, lastfmTrack.Name));
         }
     }
 }

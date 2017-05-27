@@ -25,8 +25,7 @@
 
         public static LastfmUser GetUser(string userGuid)
         {
-            Guid g;
-            if (Guid.TryParse(userGuid, out g))
+            if (Guid.TryParse(userGuid, out Guid g))
                 return GetUser(g);
 
             return null;

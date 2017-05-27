@@ -2,7 +2,7 @@
 {
     using Api;
     using Configuration;
-    using MediaBrowser.Common.Net;   
+    using MediaBrowser.Common.Net;
     using MediaBrowser.Controller.Entities.Audio;
     using MediaBrowser.Controller.Library;
     using MediaBrowser.Controller.Plugins;
@@ -12,7 +12,6 @@
     using MediaBrowser.Model.Serialization;
     using System.Linq;
 
-
     /// <summary>
     /// Class ServerEntryPoint
     /// </summary>
@@ -21,7 +20,7 @@
         private readonly ISessionManager  _sessionManager;
         private readonly IUserDataManager _userDataManager;
 
-        private LastfmApiClient _apiClient;
+        private readonly LastfmApiClient _apiClient;
 
         /// <summary>
         /// Gets the instance.
@@ -37,7 +36,7 @@
             _userDataManager = userDataManager;
 
             _apiClient = new LastfmApiClient(httpClient, jsonSerializer);
-            
+
             Instance = this;
         }
 
@@ -55,10 +54,11 @@
         /// <summary>
         /// Let last fm know when a user favourites or unfavourites a track
         /// </summary>
-        void UserDataSaved(object sender, UserDataSaveEventArgs e)
+        private void UserDataSaved(object sender, UserDataSaveEventArgs e)
         {
             //We only care about audio
-            if (!(e.Item is Audio))
+            var item = e.Item as Audio;
+            if (item == null)
                 return;
 
             //We also only care about User rating changes
@@ -78,8 +78,6 @@
                 return;
             }
 
-            var item = e.Item as Audio;
-
             //Dont do if syncing
             if (Plugin.Syncing)
                 return;
@@ -95,10 +93,9 @@
         private void PlaybackStopped(object sender, PlaybackStopEventArgs e)
         {
             //We only care about audio
-            if (!(e.Item is Audio))
-                return;
-
             var item = e.Item as Audio;
+            if(item == null)
+                return;
 
             //Make sure the track has been fully played
             if (!e.PlayedToCompletion)
@@ -212,8 +209,7 @@
             _userDataManager.UserDataSaved  -= UserDataSaved;
 
             //Clean up
-            _apiClient = null;
-
+            _apiClient?.Dispose();
         }
     }
 }
