@@ -3,19 +3,18 @@
     using System;
     using Api;
     using MediaBrowser.Common.Net;
-    using MediaBrowser.Controller.Net;
     using MediaBrowser.Model.Serialization;
-    using ServiceStack;
+    using MediaBrowser.Model.Services;
+    using Models.Responses;
 
     [Route("/Lastfm/Login", "POST")]
-    [Api("Calls Last.fm's getMobileSession to get a Last.fm session key")]
-    public class Login
+    public class Login : IReturn<MobileSessionResponse>
     {
         public string Username { get; set; }
         public string Password { get; set; }
     }
 
-    public class RestApi : IRestfulService, IDisposable
+    public class RestApi : IService, IDisposable
     {
         private readonly LastfmApiClient _apiClient;
 
