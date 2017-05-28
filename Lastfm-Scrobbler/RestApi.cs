@@ -11,12 +11,6 @@
     using MediaBrowser.Model.Services;
     using Models;
 
-    [Route("/LastFm/Session")]
-    public class GetSessionRequest
-    {
-        public string Token { get; set; }
-    }
-
     [Route("/LastFm/callback")]
     public class LastfmCallback
     {
@@ -33,15 +27,6 @@
         {
             _userManager = userManager;
             _apiClient = new LastfmApiClient(httpClient, jsonSerializer);
-        }
-
-        public async Task<object> Get(GetSessionRequest request)
-        {
-            Plugin.Logger.Debug("Get Session for token {0}", request.Token);
-
-            var session = await _apiClient.GetSession(request.Token);
-
-            return session;
         }
 
         public async Task<object> Get(LastfmCallback callback)
@@ -97,8 +82,7 @@
             Success = 200,
             MissingToken = 10,
             BadSession = 20,
-            InvalidUser = 30,
-            FailedToUpdateConfiguration = 40
+            InvalidUser = 30
         }
 
         private Task<object> Redirect(AuthResult result)

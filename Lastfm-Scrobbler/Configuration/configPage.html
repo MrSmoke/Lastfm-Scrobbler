@@ -15,12 +15,9 @@
                             <select id="user" name="user"></select>
                         </li>
                         <li>
-                            <label for="username">Username</label>
-                            <input type="text" id="username" name="username" required="required" placeholder="Your Last.fm Username" />
-                        </li>
-                        <li>
-                            <label for="password">Password</label>
-                            <input type="password" id="password" name="password" required="required" placeholder="Your Last.fm Password" />
+                            <div class="">
+                                <button id="connect">Connect to Last.fm</button>
+                            </div>
                         </li>
                         <li>
                             <input type="checkbox" class="chkStandardFilter" name="optionScrobble" id="optionScrobble" data-mini="true"  />
@@ -42,6 +39,7 @@
 
             var LastfmScrobblerConfigurationPage = {
                 _pluginUniqueId: "1f5e1261-1e09-4bed-8839-dc07afe096c2",
+                _apiKey: "e85c2d4e649f4a01dbfec778d758ab2e",
                 _users:  [],
                 _config: [],
 
@@ -68,6 +66,7 @@
                     this.$el.find('#LastfmScrobblerConfigurationForm').on('submit', this, this.onSubmit);
                     this.$el.find('#user').on('change', this, $.proxy(this.onUserChange, this));
                     this.$el.find("#removeUser").on('click', $.proxy(this.removeUser, this));
+                    this.$el.find("#connect").on('click', $.proxy(this.redirectToLastfm, this));
 
                     var loadConfig = this.loadConfiguration();
                     var loadUsers  = this.loadUsers().then($.proxy(this.buildUserList, this));
@@ -108,6 +107,14 @@
                     $selectEl
                         .html(html)
                         .selectmenu("refresh");
+                },
+
+                redirectToLastfm: function() {
+                    var userId = this.getCurrentSelectedUserId();
+
+                    var callbackUrl = "LastFm/Callback?UserId=" + userId + "&retUrl=" + window.location;
+
+                    window.location = "http://www.last.fm/api/auth/?api_key=" + this._apiKey + "&cb=" + ApiClient.getUrl(encodeURIComponent(callbackUrl));
                 },
 
                 populateInputs: function (userData) {
