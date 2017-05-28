@@ -9,6 +9,7 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Resources;
     using Utils;
 
     public class LastfmApiClient : BaseLastfmApiClient
@@ -116,9 +117,19 @@
         /// <param name="item">The track</param>
         /// <param name="user">The Lastfm User</param>
         /// <returns></returns>
-        public async Task<bool> UnloveTrack(Audio item, LastfmUser user)
+        public Task<bool> UnloveTrack(Audio item, LastfmUser user)
         {
-            return await LoveTrack(item, user, false);
+            return LoveTrack(item, user, false);
+        }
+
+        public Task<LovedTracksResponse> GetLovedTracks(LastfmUser user)
+        {
+            var request = new GetLovedTracksRequest
+            {
+                User = user.Username
+            };
+
+            return Get<GetLovedTracksRequest, LovedTracksResponse>(request);
         }
     }
 }
