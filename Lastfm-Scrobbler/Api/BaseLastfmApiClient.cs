@@ -113,7 +113,9 @@
 
         private static Dictionary<string, string> EscapeDictionary(Dictionary<string, string> dic)
         {
-            return dic.ToDictionary(item => item.Key, item => Uri.EscapeDataString(item.Value));
+            return dic
+                .Where(i => i.Value != null)
+                .ToDictionary(item => item.Key, item => Uri.EscapeDataString(item.Value));
         }
         #endregion
 

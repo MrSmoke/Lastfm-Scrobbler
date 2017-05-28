@@ -36,11 +36,24 @@
 
         public async Task Scrobble(Audio item, LastfmUser user)
         {
+            if (string.IsNullOrWhiteSpace(item.Name))
+            {
+                Plugin.Logger.Error("Cannot scrobble track: {0}, no name", item.Id);
+                return;
+            }
+
+            var artist = item.Artists?.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(artist))
+            {
+                Plugin.Logger.Error("Cannot scrobble track: {0} ({1}), no artist found", item.Id, item.Name);
+                return;
+            }
+
             var request = new ScrobbleRequest
             {
                 Track      = item.Name,
                 Album      = item.Album,
-                Artist     = item.Artists.First(),
+                Artist     = artist,
                 Timestamp  = Helpers.CurrentTimestamp(),
                 SessionKey = user.SessionKey
             };
@@ -58,11 +71,24 @@
 
         public async Task NowPlaying(Audio item, LastfmUser user)
         {
+            if (string.IsNullOrWhiteSpace(item.Name))
+            {
+                Plugin.Logger.Error("Cannot set now playing for track: {0}, no name", item.Id);
+                return;
+            }
+
+            var artist = item.Artists?.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(artist))
+            {
+                Plugin.Logger.Error("Cannot set now playing for track: {0} ({1}), no artist found", item.Id, item.Name);
+                return;
+            }
+
             var request = new NowPlayingRequest
             {
                 Track  = item.Name,
+                Artist = artist,
                 Album  = item.Album,
-                Artist = item.Artists.First(),
                 SessionKey = user.SessionKey
             };
 
