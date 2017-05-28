@@ -45,7 +45,7 @@
                 SessionKey = user.SessionKey
             };
 
-            var response = await Post<ScrobbleRequest, ScrobbleResponse>(request);
+            var response = await Post<ScrobbleRequest, ScrobbleResponse>(request).ConfigureAwait(false);
 
             if (response != null && !response.IsError())
             {
@@ -70,7 +70,7 @@
             if (item.RunTimeTicks != null)
                 request.Duration = Convert.ToInt32(TimeSpan.FromTicks((long)item.RunTimeTicks).TotalSeconds);
 
-            var response = await Post<NowPlayingRequest, ScrobbleResponse>(request);
+            var response = await Post<NowPlayingRequest, ScrobbleResponse>(request).ConfigureAwait(false);
 
             if (response != null && !response.IsError())
             {
@@ -98,7 +98,7 @@
             };
 
             //Send the request
-            var response = await Post<TrackLoveRequest, BaseResponse>(request);
+            var response = await Post<TrackLoveRequest, BaseResponse>(request).ConfigureAwait(false);
 
             if (response == null || response.IsError())
             {
@@ -116,9 +116,9 @@
         /// <param name="item">The track</param>
         /// <param name="user">The Lastfm User</param>
         /// <returns></returns>
-        public async Task<bool> UnloveTrack(Audio item, LastfmUser user)
+        public Task<bool> UnloveTrack(Audio item, LastfmUser user)
         {
-            return await LoveTrack(item, user, false);
+            return LoveTrack(item, user, false);
         }
     }
 }
