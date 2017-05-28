@@ -12,9 +12,9 @@
     using System.Threading.Tasks;
     using Utils;
 
-    public class BaseLastfmApiClient
+    public class BaseLastfmApiClient : IDisposable
     {
-        private const string ApiVersion = "2.0";
+        private const string API_VERSION = "2.0";
 
         private readonly IHttpClient     _httpClient;
         private readonly IJsonSerializer _jsonSerializer;
@@ -37,7 +37,7 @@
             var data = request.ToDictionary();
 
             //Append the signature
-            Helpers.AppendSignature(ref data);
+            Helpers.AppendSignature(data);
 
             using (var stream = await _httpClient.Post(new HttpRequestOptions
             {
@@ -103,26 +103,23 @@
         #region Private methods
         private static string BuildGetUrl(Dictionary<string, string> requestData)
         {
-            return String.Format("http://{0}/{1}/?format=json&{2}",
-                                    Strings.Endpoints.LastfmApi,
-                                    ApiVersion,
-                                    Helpers.DictionaryToQueryString(requestData)
-                                );
+            return $"http://{Strings.Endpoints.LastfmApi}/{API_VERSION}/?format=json&{Helpers.DictionaryToQueryString(requestData)}";
         }
 
         private static string BuildPostUrl(bool secure = false)
         {
-            return String.Format("{0}://{1}/{2}/?format=json",
-                                    secure ? "https" : "http",
-                                    Strings.Endpoints.LastfmApi,
-                                    ApiVersion
-                                );
+            return $"{(secure ? "https" : "http")}://{Strings.Endpoints.LastfmApi}/{API_VERSION}/?format=json";
         }
 
-        private Dictionary<string, string> EscapeDictionary(Dictionary<string, string> dic)
+        private static Dictionary<string, string> EscapeDictionary(Dictionary<string, string> dic)
         {
             return dic.ToDictionary(item => item.Key, item => Uri.EscapeDataString(item.Value));
         }
         #endregion
+
+        public void Dispose()
+        {
+            _httpClient?.Dispose();
+        }
     }
 }

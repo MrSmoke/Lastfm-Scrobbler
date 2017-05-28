@@ -9,7 +9,6 @@
     using Resources;
     using System;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
     using Utils;
 
@@ -114,14 +113,14 @@
             //Send the request
             var response = await Post<TrackLoveRequest, BaseResponse>(request);
 
-            if (response != null && !response.IsError())
+            if (response == null || response.IsError())
             {
-                Plugin.Logger.Info("{0} {2}loved track '{1}'", user.Username, item.Name, (love ? "" : "un"));
-                return true;
+                Plugin.Logger.Error("{0} Failed to love = {3} track '{1}' - {2}", user.Username, item.Name, response?.Message ?? "empty response", love);
+                return false;
             }
 
-            Plugin.Logger.Error("{0} Failed to love = {3} track '{1}' - {2}", user.Username, item.Name, response.Message, love);
-            return false;
+            Plugin.Logger.Info("{0} {2}loved track '{1}'", user.Username, item.Name, love ? "" : "un");
+            return true;
         }
 
         /// <summary>
@@ -145,34 +144,6 @@
             };
 
             return await Get<GetLovedTracksRequest, LovedTracksResponse>(request);
-        }
-
-        public async Task<GetTracksResponse> GetTracks(LastfmUser user, MusicArtist artist, CancellationToken cancellationToken)
-        {
-            var request = new GetTracksRequest
-            {
-                User   = user.Username,
-                Artist = artist.Name,
-                ApiKey = Strings.Keys.LastfmApiKey,
-                Method = Strings.Methods.GetTracks,
-                Limit  = 1000
-            };
-
-            return await Get<GetTracksRequest, GetTracksResponse>(request, cancellationToken);
-        }
-
-        public async Task<GetTracksResponse> GetTracks(LastfmUser user, CancellationToken cancellationToken, int page = 0, int limit = 200)
-        {
-            var request = new GetTracksRequest
-            {
-                User   = user.Username,
-                ApiKey = Strings.Keys.LastfmApiKey,
-                Method = Strings.Methods.GetTracks,
-                Limit  = limit,
-                Page   = page
-            };
-
-            return await Get<GetTracksRequest, GetTracksResponse>(request, cancellationToken);
         }
     }
 }

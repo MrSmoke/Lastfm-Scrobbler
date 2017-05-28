@@ -70,7 +70,7 @@
                     this.$el.find("#removeUser").on('click', $.proxy(this.removeUser, this));
 
                     var loadConfig = this.loadConfiguration();
-                    var loadUsers  = this.loadUsers().done($.proxy(this.buildUserList, this));
+                    var loadUsers  = this.loadUsers().then($.proxy(this.buildUserList, this));
 
                     //When we load everything, set the current user
                     $.when(loadConfig, loadUsers).then($.proxy(function () {
@@ -82,13 +82,13 @@
                 },
 
                 loadConfiguration: function () {
-                    return ApiClient.getPluginConfiguration(this._pluginUniqueId).done($.proxy(function (config) {
+                    return ApiClient.getPluginConfiguration(this._pluginUniqueId).then($.proxy(function (config) {
                         this._config = config;
                     }, this));
                 },
 
                 loadUsers: function () {
-                    return ApiClient.getUsers().done($.proxy(function (users) {
+                    return ApiClient.getUsers().then($.proxy(function (users) {
                         this._users = users;
                     }, this));
                 },
@@ -121,12 +121,14 @@
                     //Dont forget to call checkboxradio('refresh') otherwise the UI wont update
                 },
 
-                save: function (username, password) {
+                save: function(username, password) {
                     var userConfig = this.getCurrentSelectedUser();
 
                     //If the conig for the user doesnt exist, create one
                     if (!userConfig) {
-                        userConfig = $.extend({}, this.configDefaults, { MediaBrowserUserId: this.getCurrentSelectedUserId() });
+                        userConfig = $.extend({},
+                            this.configDefaults,
+                            { MediaBrowserUserId: this.getCurrentSelectedUserId() });
 
                         this._config.LastfmUsers.push(userConfig);
                     }
@@ -139,34 +141,41 @@
 
 
                     //Dont try and login again if the password field is still the SessionKey
-                    if (userConfig.SessionKey == password) {
+                    if (userConfig.SessionKey === password) {
                         this.doSave();
 
                         return;
                     }
 
                     //Get session with user data
-                    ApiClient.LastfmGetMobileSession(username, password).done($.proxy(function (data) {
+                    ApiClient.LastfmGetMobileSession(username, password)
+                        .then($.proxy(function(data) {
+                                Dashboard.hideLoadingMsg();
 
-                        //Check if we have data
-                        if (data && data.session) {
+                                //Check if we have data
+                                if (data && data.session) {
 
-                            userConfig.Username   = data.session.name;
-                            userConfig.SessionKey = data.session.key;
+                                    userConfig.Username = data.session.name;
+                                    userConfig.SessionKey = data.session.key;
 
-                            //Save
-                            this.doSave();
+                                    //Save
+                                    this.doSave();
 
-                            return;
-                        }
+                                    return;
+                                }
 
-                        //Show error
-                        Dashboard.showError(data.message || "Something went wrong");
-                    }, this));
+                                //Show error
+                                Dashboard.alert(data.message || "Something went wrong");
+                            },
+                            this))
+                        .catch(function (err) {
+                            Dashboard.hideLoadingMsg();
+                            Dashboard.alert("Something went wrong");
+                        });
                 },
 
                 doSave: function () {
-                    return this.saveConfiguration().done($.proxy(function (result) {
+                    return this.saveConfiguration().then($.proxy(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
 
                         this.onUserChange();
@@ -224,7 +233,7 @@
                     var password = $(this).find("#password").val();
 
                     //Load the config again in case another user has updated their Lastfm info
-                    self.loadConfiguration().done(function () {
+                    self.loadConfiguration().then(function () {
                         self.save(username, password);
                     });
                 },
@@ -245,7 +254,7 @@
 
                     Dashboard.showLoadingMsg();
 
-                    this.loadConfiguration().done($.proxy(function () {
+                    this.loadConfiguration().then($.proxy(function () {
 
                         //Remove the config for the current user
                         this._config.LastfmUsers = $.grep(this._config.LastfmUsers, function(user) {
@@ -253,7 +262,7 @@
                         });
 
                         //Save the result
-                        this.saveConfiguration().done(function () {
+                        this.saveConfiguration().then(function () {
                             Dashboard.processPluginConfigurationUpdateResult();
 
                             _this.onUserChange();
