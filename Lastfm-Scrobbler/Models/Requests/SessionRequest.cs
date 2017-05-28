@@ -7,7 +7,7 @@
     {
         public string Token { get; set; }
 
-        public override string Method => Strings.Methods.GetMobileSession;
+        public override string Method => Strings.Methods.GetSession;
 
         public override Dictionary<string, string> ToDictionary()
         {

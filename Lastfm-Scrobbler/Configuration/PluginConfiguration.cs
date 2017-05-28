@@ -1,5 +1,6 @@
 ﻿namespace LastfmScrobbler.Configuration
 {
+    using System.Collections.Generic;
     using Models;
     using MediaBrowser.Model.Plugins;
     using Resources;
@@ -9,7 +10,7 @@
     /// </summary>
     public class PluginConfiguration : BasePluginConfiguration
     {
-        public LastfmUser[] LastfmUsers { get; set; }
+        public List<LastfmUser> LastfmUsers { get; set; }
 
         public string ApiKey { get; set; }
 
@@ -18,7 +19,7 @@
         /// </summary>
         public PluginConfiguration()
         {
-            LastfmUsers = new LastfmUser[] { };
+            LastfmUsers = new List<LastfmUser>();
             ApiKey = Strings.Keys.LastfmApiKey;
         }
     }

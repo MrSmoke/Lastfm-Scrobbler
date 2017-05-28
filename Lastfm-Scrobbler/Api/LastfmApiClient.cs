@@ -15,6 +15,24 @@
     {
         public LastfmApiClient(IHttpClient httpClient, IJsonSerializer jsonSerializer) : base(httpClient, jsonSerializer) { }
 
+        public async Task<SessionResponse> GetSession(string token)
+        {
+            //Build request object
+            var request = new SessionRequest
+            {
+                Token = token,
+                Secure   = true
+            };
+
+            var response = await Post<SessionRequest, SessionResponse>(request);
+
+            //Log the key for debugging
+            if (response == null)
+                Plugin.Logger.Info("{0} failed to login into Last.fm");
+
+            return response;
+        }
+
         public async Task Scrobble(Audio item, LastfmUser user)
         {
             var request = new ScrobbleRequest

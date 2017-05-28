@@ -57,11 +57,11 @@
     <Compile Include="Configuration\ScrobblerConfigurationPage.cs" />
     <Compile Include="Models\Requests\BaseRequest.cs" />
     <Compile Include="Models\LastfmUser.cs" />
-    <Compile Include="Models\Requests\GetTokenRequest.cs" />
     <Compile Include="Models\Requests\NowPlayingRequest.cs" />
     <Compile Include="Models\Requests\SessionRequest.cs" />
     <Compile Include="Models\Requests\TrackLoveRequest.cs" />
     <Compile Include="Models\Responses\BaseResponse.cs" />
+    <Compile Include="Models\Responses\GetUserInfoResponse.cs" />
     <Compile Include="Models\Responses\LovedTracksResponse.cs" />
     <Compile Include="Models\Requests\ScrobbleRequest.cs" />
     <Compile Include="Models\Responses\ScrobbleResponse.cs" />

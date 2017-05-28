@@ -11,7 +11,7 @@
         {
             public static string Scrobble         = "track.scrobble";
             public static string NowPlaying       = "track.updateNowPlaying";
-            public static string GetMobileSession = "auth.getMobileSession";
+            public static string GetSession       = "auth.getSession";
             public static string TrackLove        = "track.love";
             public static string TrackUnlove      = "track.unlove";
         }
