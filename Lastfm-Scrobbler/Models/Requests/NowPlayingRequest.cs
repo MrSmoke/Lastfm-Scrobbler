@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Runtime.Serialization;
+    using Resources;
 
     [DataContract]
     public class NowPlayingRequest : BaseAuthedRequest
@@ -10,6 +11,8 @@
         public string Album    { get; set; }
         public string Artist   { get; set; }
         public int    Duration { get; set; }
+
+        public override string Method => Strings.Methods.NowPlaying;
 
         public override Dictionary<string, string> ToDictionary()
         {

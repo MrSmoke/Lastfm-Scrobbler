@@ -6,7 +6,6 @@
     using Models;
     using Models.Requests;
     using Models.Responses;
-    using Resources;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -23,9 +22,6 @@
             {
                 Username = username,
                 Password = password,
-
-                ApiKey   = Strings.Keys.LastfmApiKey,
-                Method   = Strings.Methods.GetMobileSession,
                 Secure   = true
             };
 
@@ -46,9 +42,6 @@
                 Album      = item.Album,
                 Artist     = item.Artists.First(),
                 Timestamp  = Helpers.CurrentTimestamp(),
-
-                ApiKey     = Strings.Keys.LastfmApiKey,
-                Method     = Strings.Methods.Scrobble,
                 SessionKey = user.SessionKey
             };
 
@@ -70,9 +63,6 @@
                 Track  = item.Name,
                 Album  = item.Album,
                 Artist = item.Artists.First(),
-
-                ApiKey = Strings.Keys.LastfmApiKey,
-                Method = Strings.Methods.NowPlaying,
                 SessionKey = user.SessionKey
             };
 
@@ -100,13 +90,10 @@
         /// <returns></returns>
         public async Task<bool> LoveTrack(Audio item, LastfmUser user, bool love = true)
         {
-            var request = new TrackLoveRequest
+            var request = new TrackLoveRequest(love)
             {
                 Artist = item.Artists.First(),
                 Track  = item.Name,
-
-                ApiKey     = Strings.Keys.LastfmApiKey,
-                Method     = love ? Strings.Methods.TrackLove : Strings.Methods.TrackUnlove,
                 SessionKey = user.SessionKey,
             };
 
@@ -132,18 +119,6 @@
         public async Task<bool> UnloveTrack(Audio item, LastfmUser user)
         {
             return await LoveTrack(item, user, false);
-        }
-
-        public async Task<LovedTracksResponse> GetLovedTracks(LastfmUser user)
-        {
-            var request = new GetLovedTracksRequest
-            {
-                User   = user.Username,
-                ApiKey = Strings.Keys.LastfmApiKey,
-                Method = Strings.Methods.GetLovedTracks
-            };
-
-            return await Get<GetLovedTracksRequest, LovedTracksResponse>(request);
         }
     }
 }

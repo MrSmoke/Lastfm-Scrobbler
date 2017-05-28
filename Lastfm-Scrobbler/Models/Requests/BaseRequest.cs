@@ -1,11 +1,13 @@
 ﻿namespace LastfmScrobbler.Models.Requests
 {
     using System.Collections.Generic;
+    using Resources;
 
-    public class BaseRequest
+    public abstract class BaseRequest
     {
-        public string ApiKey { get; set; }
-        public string Method { get; set; }
+        public string ApiKey => Strings.Keys.LastfmApiKey;
+
+        public abstract string Method { get; }
 
         /// <summary>
         /// If the request is a secure request (Over HTTPS)
@@ -22,8 +24,13 @@
         }
     }
 
-    public class BaseAuthedRequest : BaseRequest
+    public abstract class BaseAuthedRequest : BaseRequest
     {
+        protected BaseAuthedRequest()
+        {
+            Secure = true;
+        }
+
         public string SessionKey { get; set; }
 
         public override Dictionary<string, string> ToDictionary()

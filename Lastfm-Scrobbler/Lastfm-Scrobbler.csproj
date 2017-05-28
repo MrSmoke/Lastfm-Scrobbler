@@ -58,7 +58,6 @@
     <Compile Include="Models\Requests\BaseRequest.cs" />
     <Compile Include="Models\LastfmUser.cs" />
     <Compile Include="Models\MobileSession.cs" />
-    <Compile Include="Models\Requests\GetLovedTracksRequest.cs" />
     <Compile Include="Models\Requests\MobileSessionRequest.cs" />
     <Compile Include="Models\Requests\NowPlayingRequest.cs" />
     <Compile Include="Models\Requests\TrackLoveRequest.cs" />
