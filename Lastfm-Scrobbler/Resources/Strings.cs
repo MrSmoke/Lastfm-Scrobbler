@@ -14,7 +14,6 @@
             public static string GetMobileSession = "auth.getMobileSession";
             public static string TrackLove        = "track.love";
             public static string TrackUnlove      = "track.unlove";
-            public static string GetLovedTracks   = "user.getLovedTracks";
         }
 
         public static class Keys

@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Runtime.Serialization;
+    using Resources;
 
     [DataContract]
     public class ScrobbleRequest : BaseAuthedRequest
@@ -10,6 +11,8 @@
         public string Album     { get; set; }
         public string Artist    { get; set; }
         public int    Timestamp { get; set; }
+
+        public override string Method => Strings.Methods.Scrobble;
 
         public override Dictionary<string, string> ToDictionary()
         {

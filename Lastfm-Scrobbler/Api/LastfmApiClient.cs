@@ -6,7 +6,6 @@
     using Models;
     using Models.Requests;
     using Models.Responses;
-    using Resources;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -16,43 +15,6 @@
     {
         public LastfmApiClient(IHttpClient httpClient, IJsonSerializer jsonSerializer) : base(httpClient, jsonSerializer) { }
 
-        public async Task<string> RequestToken()
-        {
-            var request = new GetTokenRequest
-            {
-                ApiKey = Strings.Keys.LastfmApiKey,
-                Secure = true
-            };
-
-            var response =await  Get<GetTokenRequest, AuthenticationTokenResponse>(request);
-
-            if (response.IsError())
-                return null;
-
-            return response.Token;
-        }
-
-        public async Task<SessionResponse> RequestSession(string token)
-        {
-            //Build request object
-            var request = new SessionRequest
-            {
-                Token = token,
-
-                ApiKey   = Strings.Keys.LastfmApiKey,
-                Method   = Strings.Methods.GetMobileSession,
-                Secure   = true
-            };
-
-            var response = await Post<SessionRequest, SessionResponse>(request);
-
-            //Log the key for debugging
-            if (response == null)
-                Plugin.Logger.Info("{0} failed to login into Last.fm");
-
-            return response;
-        }
-
         public async Task Scrobble(Audio item, LastfmUser user)
         {
             var request = new ScrobbleRequest
@@ -61,9 +23,6 @@
                 Album      = item.Album,
                 Artist     = item.Artists.First(),
                 Timestamp  = Helpers.CurrentTimestamp(),
-
-                ApiKey     = Strings.Keys.LastfmApiKey,
-                Method     = Strings.Methods.Scrobble,
                 SessionKey = user.SessionKey
             };
 
@@ -85,9 +44,6 @@
                 Track  = item.Name,
                 Album  = item.Album,
                 Artist = item.Artists.First(),
-
-                ApiKey = Strings.Keys.LastfmApiKey,
-                Method = Strings.Methods.NowPlaying,
                 SessionKey = user.SessionKey
             };
 
@@ -115,13 +71,10 @@
         /// <returns></returns>
         public async Task<bool> LoveTrack(Audio item, LastfmUser user, bool love = true)
         {
-            var request = new TrackLoveRequest
+            var request = new TrackLoveRequest(love)
             {
                 Artist = item.Artists.First(),
                 Track  = item.Name,
-
-                ApiKey     = Strings.Keys.LastfmApiKey,
-                Method     = love ? Strings.Methods.TrackLove : Strings.Methods.TrackUnlove,
                 SessionKey = user.SessionKey,
             };
 
@@ -147,18 +100,6 @@
         public async Task<bool> UnloveTrack(Audio item, LastfmUser user)
         {
             return await LoveTrack(item, user, false);
-        }
-
-        public async Task<LovedTracksResponse> GetLovedTracks(LastfmUser user)
-        {
-            var request = new GetLovedTracksRequest
-            {
-                User   = user.Username,
-                ApiKey = Strings.Keys.LastfmApiKey,
-                Method = Strings.Methods.GetLovedTracks
-            };
-
-            return await Get<GetLovedTracksRequest, LovedTracksResponse>(request);
         }
     }
 }

@@ -1,10 +1,13 @@
 ﻿namespace LastfmScrobbler.Models.Requests
 {
     using System.Collections.Generic;
+    using Resources;
 
     public class SessionRequest : BaseRequest
     {
         public string Token { get; set; }
+
+        public override string Method => Strings.Methods.GetMobileSession;
 
         public override Dictionary<string, string> ToDictionary()
         {
