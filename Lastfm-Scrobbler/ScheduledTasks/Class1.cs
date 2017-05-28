@@ -151,8 +151,7 @@
             }
 
             //The percentage might not actually be correct but I'm pretty tired and don't want to think about it
-            Plugin.Logger.Info("Finished import Last.fm library for {0}. Local Songs: {1} | Last.fm Songs: {2} | Matched Songs: {3} | {4}% match rate",
-                user.Name, totalSongs, usersTracks.Count, matchedSongs, Math.Round(((double)matchedSongs / Math.Min(usersTracks.Count, totalSongs)) * 100));
+            //Plugin.Logger.Info("Finished import Last.fm library for {0}. Local Songs: {1} | Last.fm Songs: {2} | Matched Songs: {3} | {4}% match rate", user.Name, totalSongs, usersTracks.Count, matchedSongs, Math.Round(((double)matchedSongs / Math.Min(usersTracks.Count, totalSongs)) * 100));
         }
     }
 }
