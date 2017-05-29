@@ -24,7 +24,7 @@
                 Secure   = true
             };
 
-            var response = await Post<SessionRequest, SessionResponse>(request);
+            var response = await Post<SessionRequest, SessionResponse>(request).ConfigureAwait(false);
 
             //Log the key for debugging
             if (response == null)
