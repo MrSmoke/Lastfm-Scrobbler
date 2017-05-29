@@ -35,16 +35,29 @@
 
         public async Task Scrobble(Audio item, LastfmUser user)
         {
+            if (string.IsNullOrWhiteSpace(item.Name))
+            {
+                Plugin.Logger.Error("Cannot scrobble track: {0}, no name", item.Id);
+                return;
+            }
+
+            var artist = item.Artists?.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(artist))
+            {
+                Plugin.Logger.Error("Cannot scrobble track: {0} ({1}), no artist found", item.Id, item.Name);
+                return;
+            }
+
             var request = new ScrobbleRequest
             {
                 Track      = item.Name,
                 Album      = item.Album,
-                Artist     = item.Artists.First(),
+                Artist     = artist,
                 Timestamp  = Helpers.CurrentTimestamp(),
                 SessionKey = user.SessionKey
             };
 
-            var response = await Post<ScrobbleRequest, ScrobbleResponse>(request);
+            var response = await Post<ScrobbleRequest, ScrobbleResponse>(request).ConfigureAwait(false);
 
             if (response != null && !response.IsError())
             {
@@ -57,11 +70,24 @@
 
         public async Task NowPlaying(Audio item, LastfmUser user)
         {
+            if (string.IsNullOrWhiteSpace(item.Name))
+            {
+                Plugin.Logger.Error("Cannot set now playing for track: {0}, no name", item.Id);
+                return;
+            }
+
+            var artist = item.Artists?.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(artist))
+            {
+                Plugin.Logger.Error("Cannot set now playing for track: {0} ({1}), no artist found", item.Id, item.Name);
+                return;
+            }
+
             var request = new NowPlayingRequest
             {
                 Track  = item.Name,
+                Artist = artist,
                 Album  = item.Album,
-                Artist = item.Artists.First(),
                 SessionKey = user.SessionKey
             };
 
@@ -69,7 +95,7 @@
             if (item.RunTimeTicks != null)
                 request.Duration = Convert.ToInt32(TimeSpan.FromTicks((long)item.RunTimeTicks).TotalSeconds);
 
-            var response = await Post<NowPlayingRequest, ScrobbleResponse>(request);
+            var response = await Post<NowPlayingRequest, ScrobbleResponse>(request).ConfigureAwait(false);
 
             if (response != null && !response.IsError())
             {
@@ -97,7 +123,7 @@
             };
 
             //Send the request
-            var response = await Post<TrackLoveRequest, BaseResponse>(request);
+            var response = await Post<TrackLoveRequest, BaseResponse>(request).ConfigureAwait(false);
 
             if (response == null || response.IsError())
             {
@@ -115,9 +141,9 @@
         /// <param name="item">The track</param>
         /// <param name="user">The Lastfm User</param>
         /// <returns></returns>
-        public async Task<bool> UnloveTrack(Audio item, LastfmUser user)
+        public Task<bool> UnloveTrack(Audio item, LastfmUser user)
         {
-            return await LoveTrack(item, user, false);
+            return LoveTrack(item, user, false);
         }
     }
 }

@@ -45,7 +45,7 @@
                 ResourcePool          = Plugin.LastfmResourcePool,
                 CancellationToken     = CancellationToken.None,
                 EnableHttpCompression = false,
-            }, EscapeDictionary(data)))
+            }, EscapeDictionary(data)).ConfigureAwait(false))
             {
                 try
                 {
@@ -66,9 +66,9 @@
             }
         }
 
-        public async Task<TResponse> Get<TRequest, TResponse>(TRequest request) where TRequest: BaseRequest where TResponse: BaseResponse
+        public Task<TResponse> Get<TRequest, TResponse>(TRequest request) where TRequest: BaseRequest where TResponse: BaseResponse
         {
-            return await Get<TRequest, TResponse>(request, CancellationToken.None);
+            return Get<TRequest, TResponse>(request, CancellationToken.None);
         }
 
         public async Task<TResponse> Get<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken) where TRequest: BaseRequest where TResponse: BaseResponse
@@ -79,7 +79,7 @@
                 ResourcePool          = Plugin.LastfmResourcePool,
                 CancellationToken     = cancellationToken,
                 EnableHttpCompression = false,
-            }))
+            }).ConfigureAwait(false))
             {
                 try
                 {
@@ -113,7 +113,9 @@
 
         private static Dictionary<string, string> EscapeDictionary(Dictionary<string, string> dic)
         {
-            return dic.ToDictionary(item => item.Key, item => Uri.EscapeDataString(item.Value));
+            return dic
+                .Where(i => i.Value != null)
+                .ToDictionary(item => item.Key, item => Uri.EscapeDataString(item.Value));
         }
         #endregion
 
