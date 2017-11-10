@@ -3,9 +3,9 @@
     using System.Runtime.Serialization;
 
     [DataContract]
-    public class MobileSessionResponse : BaseResponse
+    public class SessionResponse : BaseResponse
     {
         [DataMember(Name="session")]
-        public MobileSession Session { get; set; }
+        public Session Session { get; set; }
     }
 }

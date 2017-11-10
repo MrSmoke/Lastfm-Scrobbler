@@ -3,7 +3,7 @@
     using System.Runtime.Serialization;
 
     [DataContract]
-    public class MobileSession
+    public class Session
     {
         [DataMember(Name = "name")]
         public string Name { get; set; }

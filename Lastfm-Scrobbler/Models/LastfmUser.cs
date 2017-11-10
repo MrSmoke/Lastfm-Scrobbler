@@ -4,6 +4,9 @@
 
     public class LastfmUser
     {
+        /// <summary>
+        /// Last.fm Username
+        /// </summary>
         public string Username { get; set; }
 
         //We wont store the password, but instead store the session key since its a lifetime key
