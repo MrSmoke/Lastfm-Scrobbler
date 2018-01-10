@@ -12,7 +12,7 @@
     using System.Threading.Tasks;
     using Utils;
 
-    public class BaseLastfmApiClient : IDisposable
+    public class BaseLastfmApiClient
     {
         private const string API_VERSION = "2.0";
 
@@ -39,17 +39,21 @@
             //Append the signature
             Helpers.AppendSignature(data);
 
-            using (var stream = await _httpClient.Post(new HttpRequestOptions
+            var options = new HttpRequestOptions
             {
-                Url                   = BuildPostUrl(request.Secure),
-                ResourcePool          = Plugin.LastfmResourcePool,
-                CancellationToken     = CancellationToken.None,
+                Url = BuildPostUrl(request.Secure),
+                ResourcePool = Plugin.LastfmResourcePool,
+                CancellationToken = CancellationToken.None,
                 EnableHttpCompression = false,
-            }, EscapeDictionary(data)))
+            };
+
+            options.SetPostData(EscapeDictionary(data));
+
+            using (var response = await _httpClient.Post(options))
             {
                 try
                 {
-                    var result = _jsonSerializer.DeserializeFromStream<TResponse>(stream);
+                    var result = _jsonSerializer.DeserializeFromStream<TResponse>(response.Content);
 
                     //Lets Log the error here to ensure all errors are logged
                     if (result.IsError())
@@ -66,9 +70,9 @@
             }
         }
 
-        public async Task<TResponse> Get<TRequest, TResponse>(TRequest request) where TRequest: BaseRequest where TResponse: BaseResponse
+        public Task<TResponse> Get<TRequest, TResponse>(TRequest request) where TRequest: BaseRequest where TResponse: BaseResponse
         {
-            return await Get<TRequest, TResponse>(request, CancellationToken.None);
+            return Get<TRequest, TResponse>(request, CancellationToken.None);
         }
 
         public async Task<TResponse> Get<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken) where TRequest: BaseRequest where TResponse: BaseResponse
@@ -116,10 +120,5 @@
             return dic.ToDictionary(item => item.Key, item => Uri.EscapeDataString(item.Value));
         }
         #endregion
-
-        public void Dispose()
-        {
-            _httpClient?.Dispose();
-        }
     }
 }

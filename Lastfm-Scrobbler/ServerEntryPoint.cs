@@ -57,8 +57,7 @@
         private void UserDataSaved(object sender, UserDataSaveEventArgs e)
         {
             //We only care about audio
-            var item = e.Item as Audio;
-            if (item == null)
+            if (!(e.Item is Audio item))
                 return;
 
             //We also only care about User rating changes
@@ -93,8 +92,7 @@
         private void PlaybackStopped(object sender, PlaybackStopEventArgs e)
         {
             //We only care about audio
-            var item = e.Item as Audio;
-            if(item == null)
+            if(!(e.Item is Audio item))
                 return;
 
             //Make sure the track has been fully played
@@ -198,6 +196,7 @@
         {
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
@@ -207,9 +206,6 @@
             _sessionManager.PlaybackStart   -= PlaybackStart;
             _sessionManager.PlaybackStopped -= PlaybackStopped;
             _userDataManager.UserDataSaved  -= UserDataSaved;
-
-            //Clean up
-            _apiClient?.Dispose();
         }
     }
 }

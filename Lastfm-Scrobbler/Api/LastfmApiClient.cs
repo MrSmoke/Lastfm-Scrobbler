@@ -1,15 +1,15 @@
 ﻿namespace LastfmScrobbler.Api
 {
     using MediaBrowser.Common.Net;
-    using MediaBrowser.Controller.Entities.Audio;
     using MediaBrowser.Model.Serialization;
     using Models;
     using Models.Requests;
     using Models.Responses;
-    using Resources;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using MediaBrowser.Controller.Entities.Audio;
+    using Resources;
     using Utils;
 
     public class LastfmApiClient : BaseLastfmApiClient
@@ -129,12 +129,12 @@
         /// <param name="item">The track</param>
         /// <param name="user">The Lastfm User</param>
         /// <returns></returns>
-        public async Task<bool> UnloveTrack(Audio item, LastfmUser user)
+        public Task<bool> UnloveTrack(Audio item, LastfmUser user)
         {
-            return await LoveTrack(item, user, false);
+            return LoveTrack(item, user, false);
         }
 
-        public async Task<LovedTracksResponse> GetLovedTracks(LastfmUser user)
+        public Task<LovedTracksResponse> GetLovedTracks(LastfmUser user)
         {
             var request = new GetLovedTracksRequest
             {
@@ -143,7 +143,7 @@
                 Method = Strings.Methods.GetLovedTracks
             };
 
-            return await Get<GetLovedTracksRequest, LovedTracksResponse>(request);
+            return Get<GetLovedTracksRequest, LovedTracksResponse>(request);
         }
     }
 }

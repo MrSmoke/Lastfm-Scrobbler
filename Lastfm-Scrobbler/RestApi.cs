@@ -1,6 +1,5 @@
 ﻿namespace LastfmScrobbler
 {
-    using System;
     using Api;
     using MediaBrowser.Common.Net;
     using MediaBrowser.Model.Serialization;
@@ -14,7 +13,7 @@
         public string Password { get; set; }
     }
 
-    public class RestApi : IService, IDisposable
+    public class RestApi : IService
     {
         private readonly LastfmApiClient _apiClient;
 
@@ -26,11 +25,6 @@
         public object Post(Login request)
         {
             return _apiClient.RequestSession(request.Username, request.Password);
-        }
-
-        public void Dispose()
-        {
-            _apiClient?.Dispose();
         }
     }
 }
